@@ -1,0 +1,66 @@
+.card {
+    background-color: var(--surface-color);
+    padding: 24px;
+    border-radius: var(--border-radius-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+}
+
+.meetingTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 8px;
+}
+
+.timeInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.dot {
+    font-weight: 900;
+    font-size: 18px;
+    line-height: 0;
+    color: var(--primary-color);
+}
+
+.joinButton {
+    background-color: var(--primary-color);
+    /* Red Button */
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-md);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.joinButton:hover {
+    background-color: var(--primary-hover);
+}

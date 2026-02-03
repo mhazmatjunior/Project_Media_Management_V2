@@ -1,0 +1,24 @@
+.container {
+    background-color: var(--surface-color);
+    padding: 24px;
+    border-radius: var(--border-radius-lg);
+    height: 100%;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+}
+
+.chartWrapper {
+    flex: 1;
+    width: 100%;
+    min-height: 200px;
+}
+
+/* Optional hover effect handled via Recharts Tooltip */

@@ -1,0 +1,101 @@
+.card {
+    background-color: #ffffff;
+    /* White background (Inverted from Black) */
+    padding: 24px;
+    border-radius: var(--border-radius-lg);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: black;
+    /* Text becomes black */
+    position: relative;
+    overflow: hidden;
+    min-height: 180px;
+}
+
+.title {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    /* Darker transparent text */
+    z-index: 2;
+}
+
+.timerDisplay {
+    font-size: 42px;
+    font-weight: 700;
+    color: #000000;
+    /* Black numerals */
+    text-align: center;
+    z-index: 2;
+    margin: 20px 0;
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    z-index: 2;
+}
+
+.playButton {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #000000;
+    /* Black button (was White) */
+    border: none;
+    color: white;
+    /* White icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding-left: 4px;
+}
+
+.recordButton {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.redDot {
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border-radius: 4px;
+}
+
+/* Background shapes adapted for White background */
+.bgShape1 {
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    /* Very faint dark border */
+    z-index: 1;
+}
+
+.bgShape2 {
+    position: absolute;
+    bottom: -20%;
+    left: -20%;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    z-index: 1;
+}

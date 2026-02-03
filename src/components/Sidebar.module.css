@@ -1,0 +1,209 @@
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    background-color: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 30px 20px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 100;
+}
+
+/* --- Logo Transition --- */
+.logoContainer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 50px;
+    padding-left: 10px;
+    flex-shrink: 0;
+    height: 50px;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.logoIconWrapper {
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logoText {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    white-space: nowrap;
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.2s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Collapsed State for Logo */
+.sidebar.collapsed {
+    padding: 30px 10px;
+}
+
+.sidebar.collapsed .logoContainer {
+    gap: 0;
+    padding-left: 0;
+    justify-content: center;
+}
+
+.sidebar.collapsed .logoText {
+    opacity: 0;
+    transform: translateX(-10px);
+    width: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* --- Menu Section Transitions --- */
+.menuSection {
+    margin-bottom: 40px;
+    width: 100%;
+    transition: all 0.4s ease;
+}
+
+.menuTitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    padding-left: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    opacity: 1;
+    height: 15px;
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed .menuTitle {
+    opacity: 0;
+    margin-bottom: 5px;
+    /* Restored previous compact spacing */
+    height: 15px;
+    overflow: hidden;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 15px;
+    border-radius: var(--border-radius-md);
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.navItem:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+    color: var(--secondary-color);
+}
+
+.active {
+    background-color: var(--secondary-color);
+    color: black !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.active :global(svg) {
+    color: black;
+}
+
+/* Icon & Text Wrappers */
+.iconWrapper {
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navText {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Collapsed Navigation */
+.sidebar.collapsed .navItem {
+    padding: 12px 0;
+    justify-content: center;
+    gap: 0;
+}
+
+.sidebar.collapsed .navText {
+    opacity: 0;
+    transform: translateX(-10px);
+    width: 0;
+    overflow: hidden;
+}
+
+/* --- Logout Row & Toggle --- */
+.logoutRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+    /* Restored original margin */
+    transition: all 0.4s ease;
+}
+
+.logoutBtn {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.sidebar.collapsed .logoutRow {
+    flex-direction: column;
+    gap: 8px;
+    /* Removed margin-top override */
+}
+
+.sidebar.collapsed .logoutBtn {
+    flex: 0;
+    width: 100%;
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.toggleBtn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.toggleBtn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
