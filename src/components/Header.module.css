@@ -1,19 +1,27 @@
 .header {
-    height: var(--header-height);
+    height: 100px;
+    /* Increased to allow top alignment matching sidebar */
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    /* Align to top to control vertical position manually */
+    padding-top: 35px;
+    /* Push content down to match Sidebar logo center (~55px) */
     justify-content: space-between;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
+    /* Reduced margin */
+    background-color: transparent;
 }
 
 .headerTitle h1 {
     font-size: 32px;
     font-weight: 700;
-    color: var(--secondary-color);
+    color: white;
+    /* Explicitly white as per design */
 }
 
 .searchContainer {
-    flex: 0 1 400px;
+    flex: 0 1 480px;
+    /* Slightly wider */
     position: relative;
     display: flex;
     align-items: center;
@@ -21,105 +29,130 @@
 
 .searchIcon {
     position: absolute;
-    left: 15px;
-    color: var(--text-secondary);
+    left: 16px;
+    color: #888;
+    /* Muted gray */
+    z-index: 2;
 }
 
 .searchInput {
     width: 100%;
-    padding: 12px 15px 12px 45px;
-    border-radius: var(--border-radius-lg);
+    padding: 14px 60px 14px 48px;
+    /* Room for icon and shortcut */
+    border-radius: 30px;
+    /* Full pill shape */
     border: none;
-    background-color: var(--surface-color);
+    background-color: #121212;
+    /* Dark surface */
     font-size: 14px;
-    color: var(--text-primary);
+    color: white;
     outline: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: background-color 0.2s;
+}
+
+.searchInput::placeholder {
+    color: #666;
+}
+
+.searchInput:focus {
+    background-color: #1a1a1a;
 }
 
 .shortcutHint {
     position: absolute;
-    right: 15px;
-    background-color: #f0f0f0;
-    padding: 4px 8px;
+    right: 12px;
+    background-color: #333;
+    padding: 4px 10px;
     border-radius: 6px;
     font-size: 12px;
-    color: #888;
+    color: #ccc;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    pointer-events: none;
+}
+
+.cmdIcon {
+    display: inline-block;
 }
 
 .actions {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
 }
 
 .iconButton {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background-color: var(--surface-color);
-    border: 1px solid transparent;
+    background-color: #121212;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
+    color: #aaa;
     cursor: pointer;
     position: relative;
     transition: all 0.2s;
 }
 
 .iconButton:hover {
-    background-color: #fff;
-    border-color: #eee;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background-color: #222;
+    color: white;
 }
 
 .notificationDot {
     position: absolute;
-    top: 10px;
-    right: 12px;
+    top: 12px;
+    right: 14px;
     width: 8px;
     height: 8px;
     background-color: var(--primary-color);
     border-radius: 50%;
-    border: 1px solid white;
+    border: 2px solid #121212;
 }
 
 .profile {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-left: 10px;
+    gap: 14px;
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 1px solid #222;
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.userName {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.userEmail {
+    font-size: 12px;
+    color: #666;
 }
 
 .avatar {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     overflow: hidden;
-    border: 2px solid white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #333;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-}
-
-.userInfo {
-    display: flex;
-    flex-direction: column;
-}
-
-.userName {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--secondary-color);
-}
-
-.userEmail {
-    font-size: 12px;
-    color: var(--text-secondary);
 }

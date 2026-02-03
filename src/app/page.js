@@ -1,5 +1,7 @@
 "use client";
 import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { addVideo } from '@/lib/features/videoSlice';
 import Header from "@/components/Header";
 import StatCard from "@/components/StatCard";
 import OngoingVideoAnalytics from "@/components/OngoingVideoAnalytics";
@@ -8,47 +10,36 @@ import ProjectList from "@/components/ProjectList";
 import AddProjectModal from "@/components/AddProjectModal";
 import styles from "./page.module.css";
 
-// --- Mock Data ---
-const endedData = [
-  { name: "Q3 Marketing Video", date: "Completed: Nov 10", color: "#3B82F6" },
-  { name: "Product Launch Teaser", date: "Completed: Nov 15", color: "#10B981" },
-  { name: "Tutorial Series Ep.1", date: "Completed: Nov 20", color: "#F59E0B" },
-];
-
-const runningData = [
-  { name: "Holiday Promo 2024", date: "Due: Dec 20", color: "#EF4444" },
-  { name: "CEO Interview Edit", date: "Due: Dec 22", color: "#8B5CF6" },
-  { name: "Website Background Loop", date: "Due: Dec 25", color: "#EC4899" },
-  { name: "Social Media Shorts", date: "Due: Dec 28", color: "#14B8A6" },
-];
-
-const pendingData = [
-  { name: "Concept Art Review", description: "Waiting for feedback", color: "#6366F1" },
-  { name: "Script Approval", description: "Pending CEO review", color: "#8B5CF6" },
-];
-
 export default function Home() {
   const [selectedStat, setSelectedStat] = useState('Total Videos');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [pendingList, setPendingList] = useState(pendingData);
+
+  const dispatch = useDispatch();
+  const videos = useSelector((state) => state.videos.videos);
+
+  // Filter lists based on status
+  const endedVideos = videos.filter(v => v.status === 'ended');
+  const runningVideos = videos.filter(v => v.status === 'running');
+  const pendingVideos = videos.filter(v => v.status === 'pending');
+
+  const totalCount = endedVideos.length + runningVideos.length + pendingVideos.length;
 
   // Helper to get correct data
   const getListForStat = () => {
     switch (selectedStat) {
-      case 'Ended Videos': return endedData;
-      case 'Running Videos': return runningData;
-      case 'Pending Videos': return pendingList;
+      case 'Ended Videos': return endedVideos;
+      case 'Running Videos': return runningVideos;
+      case 'Pending Videos': return pendingVideos;
       default: return [];
     }
   };
 
   const handleAddProject = (newProject) => {
-    const project = {
+    dispatch(addVideo({
       name: newProject.name,
-      description: newProject.description, // using description as substitute for date in this view
-      color: "var(--primary-color)"
-    };
-    setPendingList([...pendingList, project]);
+      description: newProject.description,
+      date: `Details: ${newProject.description}`, // Formatting for list view if needed
+    }));
   };
 
   return (
@@ -60,28 +51,28 @@ export default function Home() {
         <div className={styles.statsRow}>
           <StatCard
             title="Total Videos"
-            count="24"
-            subtitle="Increased from last month"
+            count={totalCount}
+            subtitle="All projects"
             variant={selectedStat === 'Total Videos' ? 'primary' : 'default'}
             onClick={() => setSelectedStat("Total Videos")}
           />
           <StatCard
             title="Ended Videos"
-            count={endedData.length}
-            subtitle="Increased from last month"
+            count={endedVideos.length}
+            subtitle="Completed"
             variant={selectedStat === 'Ended Videos' ? 'primary' : 'default'}
             onClick={() => setSelectedStat("Ended Videos")}
           />
           <StatCard
             title="Running Videos"
-            count={runningData.length}
-            subtitle="Increased from last month"
+            count={runningVideos.length}
+            subtitle="In Progress"
             variant={selectedStat === 'Running Videos' ? 'primary' : 'default'}
             onClick={() => setSelectedStat("Running Videos")}
           />
           <StatCard
             title="Pending Videos"
-            count={pendingList.length}
+            count={pendingVideos.length}
             subtitle="On Discuss"
             variant={selectedStat === 'Pending Videos' ? 'primary' : 'default'}
             onClick={() => setSelectedStat("Pending Videos")}

@@ -1,8 +1,8 @@
 .sidebar {
     width: var(--sidebar-width);
     height: 100vh;
-    background-color: var(--surface-color);
-    border-right: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    /* border-right: 1px solid var(--border-color); Removed for seamless look */
     display: flex;
     flex-direction: column;
     padding: 30px 20px;

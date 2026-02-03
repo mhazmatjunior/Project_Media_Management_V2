@@ -1,28 +1,33 @@
 "use client";
 
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ArrowLeft } from "lucide-react";
 import ProgressChart from "./ProgressChart";
 import TeamList from "./TeamList";
 import styles from "./OngoingVideoAnalytics.module.css";
 
-const data = [
-    { name: 'Vid A', value: 30, id: 1 },
-    { name: 'Vid B', value: 45, id: 2 },
-    { name: 'Vid C', value: 60, id: 3 },
-    { name: 'Vid D', value: 70, id: 4 },
-    { name: 'Vid E', value: 40, id: 5 },
-    { name: 'Vid F', value: 50, id: 6 },
-    { name: 'Vid G', value: 65, id: 7 },
-];
-
 const OngoingVideoAnalytics = () => {
     const [selectedVideo, setSelectedVideo] = useState(null);
 
+    // Get videos from Redux store
+    const videos = useSelector((state) => state.videos.videos);
+
+    // Filter for running videos only
+    const runningVideos = videos.filter(v => v.status === 'running');
+
+    // Filter for running/ended videos effectively, or just use all for analytics
+    // The previous chart showed specific values. We'll map 'value' from our store.
+    const chartData = runningVideos.map(v => ({
+        name: v.name,
+        value: v.value || 0, // Fallback if no value
+        id: v.id,
+        // Shorten name for X-axis if needed
+        shortName: v.name.length > 10 ? v.name.substring(0, 8) + '...' : v.name
+    }));
+
     const handleBarClick = (data, index) => {
-        // data might be the event or payload depending on recharts version
-        // Typically the first arg has payload
         if (data && data.activePayload && data.activePayload.length > 0) {
             setSelectedVideo(data.activePayload[0].payload);
         } else if (data && data.payload) { // Direct click on Cell
@@ -57,9 +62,9 @@ const OngoingVideoAnalytics = () => {
                     <p className={styles.subtitle}>Click a bar to view video details</p>
                     <div className={styles.chartWrapper}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data} margin={{ top: 10, right: 0, left: -25, bottom: 0 }} onClick={handleBarClick}>
+                            <BarChart data={chartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }} onClick={handleBarClick}>
                                 <XAxis
-                                    dataKey="name"
+                                    dataKey="name" // Or use "shortName" if labels get too long
                                     axisLine={false}
                                     tickLine={false}
                                     tick={{ fill: '#888', fontSize: 12 }}
@@ -70,10 +75,10 @@ const OngoingVideoAnalytics = () => {
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', background: '#222', color: '#fff' }}
                                 />
                                 <Bar dataKey="value" radius={[20, 20, 20, 20]} barSize={35} onClick={handleBarClick}>
-                                    {data.map((entry, index) => (
+                                    {chartData.map((entry, index) => (
                                         <Cell
                                             key={`cell-${index}`}
-                                            fill={index === 2 ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)'}
+                                            fill={index % 2 === 0 ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)'}
                                             className={styles.bar}
                                             style={{ cursor: 'pointer' }}
                                         />
