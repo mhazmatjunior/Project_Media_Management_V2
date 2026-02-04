@@ -1,7 +1,18 @@
-import { Plus } from "lucide-react";
+import { Plus, Play, ArrowRight, CheckCircle } from "lucide-react";
 import styles from "./ProjectList.module.css";
 
-const ProjectList = ({ projects = [], showAddButton = false, onAddClick, title = "Videos List" }) => {
+const ProjectList = ({
+    projects = [],
+    showAddButton = false,
+    onAddClick,
+    showStartButton = false,
+    onStartClick,
+    showForwardButton = false,
+    onForwardClick,
+    showFinishButton = false,
+    onFinishClick,
+    title = "Videos List"
+}) => {
     return (
         <div className={styles.card}>
             <div className={styles.header}>
@@ -25,6 +36,36 @@ const ProjectList = ({ projects = [], showAddButton = false, onAddClick, title =
                                 <h4 className={styles.name}>{project.name}</h4>
                                 <p className={styles.date}>{project.date || project.description}</p>
                             </div>
+                            {showStartButton && onStartClick && (
+                                <button
+                                    className={styles.startButton}
+                                    onClick={() => onStartClick(project.id)}
+                                    title="Start video"
+                                >
+                                    <Play size={16} />
+                                    <span>Start</span>
+                                </button>
+                            )}
+                            {showForwardButton && onForwardClick && (
+                                <button
+                                    className={styles.forwardButton}
+                                    onClick={() => onForwardClick(project.id)}
+                                    title="Forward to next department"
+                                >
+                                    <ArrowRight size={16} />
+                                    <span>Forward</span>
+                                </button>
+                            )}
+                            {showFinishButton && onFinishClick && (
+                                <button
+                                    className={styles.finishButton}
+                                    onClick={() => onFinishClick(project.id)}
+                                    title="Mark as finished"
+                                >
+                                    <CheckCircle size={16} />
+                                    <span>Finish</span>
+                                </button>
+                            )}
                         </div>
                     ))
                 ) : (

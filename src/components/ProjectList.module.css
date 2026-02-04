@@ -90,3 +90,78 @@
     color: var(--text-secondary);
     margin-top: 2px;
 }
+
+.startButton {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
+    transition: all 0.2s;
+}
+
+.startButton:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.startButton:active {
+    transform: translateY(0);
+}
+
+.forwardButton {
+    background-color: #3B82F6;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
+    transition: all 0.2s;
+}
+
+.forwardButton:hover {
+    background-color: #2563EB;
+    transform: translateY(-1px);
+}
+
+.forwardButton:active {
+    transform: translateY(0);
+}
+
+.finishButton {
+    background-color: #10B981;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
+    transition: all 0.2s;
+}
+
+.finishButton:hover {
+    background-color: #059669;
+    transform: translateY(-1px);
+}
+
+.finishButton:active {
+    transform: translateY(0);
+}

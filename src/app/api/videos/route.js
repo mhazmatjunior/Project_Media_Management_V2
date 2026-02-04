@@ -16,6 +16,7 @@ export async function GET() {
             name: video.title,
             description: video.description,
             status: mapDbStatusToApp(video.status),
+            currentDepartment: video.currentDepartment,
             date: formatDate(video.createdAt),
             color: getColorForStatus(video.status),
             value: calculateProgress(video.status),

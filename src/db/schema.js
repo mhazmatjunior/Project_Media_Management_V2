@@ -17,6 +17,7 @@ export const videos = pgTable('videos', {
     thumbnail: text('thumbnail'),
     videoUrl: text('video_url'),
     status: text('status').notNull().default('pending'), // 'pending', 'in_progress', 'completed', 'archived'
+    currentDepartment: text('current_department'), // 'research', 'writer', 'speaker', 'graphics'
     category: text('category').default('general'), // 'general', 'tutorial', 'vlog', etc.
     views: integer('views').default(0),
     likes: integer('likes').default(0),

@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 // PUT /api/videos/[id] - Update video
 export async function PUT(request, { params }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         const body = await request.json();
 
         // Map app status to DB status if provided
@@ -15,6 +15,9 @@ export async function PUT(request, { params }) {
         if (body.description) updateData.description = body.description;
         if (body.status) {
             updateData.status = mapAppStatusToDb(body.status);
+        }
+        if (body.currentDepartment !== undefined) {
+            updateData.currentDepartment = body.currentDepartment;
         }
 
         updateData.updatedAt = new Date();
@@ -54,7 +57,7 @@ export async function PUT(request, { params }) {
 // DELETE /api/videos/[id] - Delete video
 export async function DELETE(request, { params }) {
     try {
-        const { id } = params;
+        const { id } = await params;
 
         await db
             .delete(schema.videos)

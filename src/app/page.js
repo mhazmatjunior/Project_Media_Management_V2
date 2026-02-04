@@ -83,6 +83,31 @@ export default function Home() {
     }
   };
 
+  const handleStartVideo = async (videoId) => {
+    try {
+      const response = await fetch(`/api/videos/${videoId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'running',
+          currentDepartment: 'research',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start video');
+      }
+
+      // Refresh the videos list
+      await fetchVideos();
+    } catch (err) {
+      console.error('Error starting video:', err);
+      alert('Failed to start video. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.dashboard}>
@@ -162,6 +187,8 @@ export default function Home() {
                 projects={getListForStat()}
                 showAddButton={selectedStat === 'Pending Videos'} // Only show in Pending
                 onAddClick={() => setIsModalOpen(true)}
+                showStartButton={selectedStat === 'Pending Videos'} // Show Start button for pending
+                onStartClick={handleStartVideo}
               />
             </div>
           )}
