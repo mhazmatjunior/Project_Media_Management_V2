@@ -6,10 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:init": "node scripts/init-db.js",
+    "db:seed": "node scripts/seed-db.js",
+    "db:test": "node scripts/test-db.js",
+    "db:clear": "node scripts/clear-db.js"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@reduxjs/toolkit": "^2.11.2",
+    "drizzle-orm": "^0.45.1",
     "lucide-react": "^0.563.0",
     "next": "16.1.6",
     "react": "19.2.3",
@@ -18,6 +26,8 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "dotenv": "^16.4.7",
+    "drizzle-kit": "^0.30.2",
     "eslint": "^9",
     "eslint-config-next": "16.1.6"
   }

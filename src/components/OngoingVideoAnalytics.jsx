@@ -1,27 +1,22 @@
 "use client";
 
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ArrowLeft } from "lucide-react";
 import ProgressChart from "./ProgressChart";
 import TeamList from "./TeamList";
 import styles from "./OngoingVideoAnalytics.module.css";
 
-const OngoingVideoAnalytics = () => {
+const OngoingVideoAnalytics = ({ videos = [] }) => {
     const [selectedVideo, setSelectedVideo] = useState(null);
 
-    // Get videos from Redux store
-    const videos = useSelector((state) => state.videos.videos);
+    // Use passed videos prop (already filtered for running videos)
+    const runningVideos = videos;
 
-    // Filter for running videos only
-    const runningVideos = videos.filter(v => v.status === 'running');
-
-    // Filter for running/ended videos effectively, or just use all for analytics
-    // The previous chart showed specific values. We'll map 'value' from our store.
+    // Map videos to chart data
     const chartData = runningVideos.map(v => ({
         name: v.name,
-        value: v.value || 0, // Fallback if no value
+        value: v.value || 50, // Default progress for running videos
         id: v.id,
         // Shorten name for X-axis if needed
         shortName: v.name.length > 10 ? v.name.substring(0, 8) + '...' : v.name

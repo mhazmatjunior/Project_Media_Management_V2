@@ -1,7 +1,5 @@
 "use client";
-import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { addVideo } from '@/lib/features/videoSlice';
+import { useState, useEffect } from 'react';
 import Header from "@/components/Header";
 import StatCard from "@/components/StatCard";
 import OngoingVideoAnalytics from "@/components/OngoingVideoAnalytics";
@@ -13,16 +11,41 @@ import styles from "./page.module.css";
 export default function Home() {
   const [selectedStat, setSelectedStat] = useState('Total Videos');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const dispatch = useDispatch();
-  const videos = useSelector((state) => state.videos.videos);
+  // Fetch videos from API
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/videos');
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch videos');
+      }
+
+      const data = await response.json();
+      setVideos(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching videos:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter lists based on status
   const endedVideos = videos.filter(v => v.status === 'ended');
   const runningVideos = videos.filter(v => v.status === 'running');
   const pendingVideos = videos.filter(v => v.status === 'pending');
 
-  const totalCount = endedVideos.length + runningVideos.length + pendingVideos.length;
+  const totalCount = videos.length;
 
   // Helper to get correct data
   const getListForStat = () => {
@@ -34,13 +57,53 @@ export default function Home() {
     }
   };
 
-  const handleAddProject = (newProject) => {
-    dispatch(addVideo({
-      name: newProject.name,
-      description: newProject.description,
-      date: `Details: ${newProject.description}`, // Formatting for list view if needed
-    }));
+  const handleAddProject = async (newProject) => {
+    try {
+      const response = await fetch('/api/videos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: newProject.name,
+          description: newProject.description,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create video');
+      }
+
+      // Refresh the videos list
+      await fetchVideos();
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Error adding video:', err);
+      alert('Failed to add video. Please try again.');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className={styles.dashboard}>
+        <Header title="Dashboard" />
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--secondary-color)' }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.dashboard}>
+        <Header title="Dashboard" />
+        <div style={{ padding: '40px', textAlign: 'center', color: '#EF4444' }}>
+          Error: {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dashboard}>
@@ -84,7 +147,7 @@ export default function Home() {
           {selectedStat === 'Total Videos' ? (
             <>
               <div className={styles.analyticsWrapper}>
-                <OngoingVideoAnalytics />
+                <OngoingVideoAnalytics videos={runningVideos} />
               </div>
               <div className={styles.reminderWrapper}>
                 <ReminderCard />
