@@ -2,13 +2,9 @@
     background-color: var(--surface-color);
     padding: 24px;
     border-radius: var(--border-radius-lg);
-    flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    /* Prevent container overflow */
-    height: 100%;
-    /* Ensure it fills height in split view */
 }
 
 .header {
@@ -17,7 +13,6 @@
     align-items: center;
     margin-bottom: 20px;
     flex-shrink: 0;
-    /* Keep header visible */
 }
 
 .title {
@@ -49,12 +44,11 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    flex: 1;
-    /* Take remaining space */
     overflow-y: auto;
-    /* Scroll internally */
     padding-right: 4px;
     /* Space for scrollbar */
+    max-height: 200px;
+    /* Accommodate approx 3 items */
 }
 
 .item {
