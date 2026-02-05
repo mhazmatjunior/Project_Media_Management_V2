@@ -1,0 +1,169 @@
+/* Main Container */
+.container {
+    padding: 30px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #fff;
+}
+
+/* Table Card */
+.tableContainer {
+    background-color: var(--surface-color, #121212);
+    border-radius: 12px;
+    border: 1px solid #333;
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+.table th,
+.table td {
+    padding: 16px 24px;
+    text-align: left;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.table th {
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+
+
+/* User Info Cell */
+.userCell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.userInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.userName {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+
+.userHandle {
+    font-size: 12px;
+    color: #888;
+}
+
+/* Status Badges */
+.statusBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #333;
+    background-color: transparent;
+    color: white;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #666;
+}
+
+.statusActive .dot {
+    background-color: #fff;
+}
+
+.statusOffline .dot {
+    background-color: #444;
+}
+
+.statusOffline {
+    color: #888;
+}
+
+/* Email Cell */
+.email {
+    font-size: 14px;
+    color: #ccc;
+}
+
+/* Teams Cell */
+.teamsCell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.teamBadge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #444;
+    font-size: 12px;
+    color: #aaa;
+    background-color: transparent;
+}
+
+.teamBadge.primary {
+    color: #fff;
+    border-color: #666;
+}
+
+.moreBadge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #aaa;
+}
+
+/* Action Buttons */
+.actions {
+    display: flex;
+    gap: 12px;
+}
+
+.actionBtn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.actionBtn:hover {
+    color: white;
+}

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearSession } from "@/lib/auth";
 import {
-  LayoutDashboard, FileSearch, PenTool, Mic, Palette, Settings,
-  HelpCircle, LogOut, ChevronLeft, ChevronRight
+  LayoutDashboard, FileSearch, PenTool, Mic, Palette, Users,
+  LogOut, ChevronLeft, ChevronRight
 } from "lucide-react";
 import Logo from "./Logo";
 import styles from "./Sidebar.module.css";
@@ -41,8 +41,7 @@ const Sidebar = () => {
   ];
 
   const generalItems = [
-    { name: "Settings", icon: Settings, path: "/settings" },
-    { name: "Help", icon: HelpCircle, path: "/help" },
+    { name: "Members", icon: Users, path: "/members" },
   ];
 
   return (
