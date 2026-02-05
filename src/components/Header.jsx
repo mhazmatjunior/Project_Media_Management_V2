@@ -1,7 +1,21 @@
+import { useState, useEffect } from "react";
 import { Search, Mail, Bell, Command } from "lucide-react";
+import { getSession } from "@/lib/auth";
 import styles from "./Header.module.css";
 
 const Header = ({ title }) => {
+    const [user, setUser] = useState({
+        name: "User",
+        email: ""
+    });
+
+    useEffect(() => {
+        const sessionUser = getSession();
+        if (sessionUser) {
+            setUser(sessionUser);
+        }
+    }, []);
+
     return (
         <header className={styles.header}>
             <div className={styles.headerTitle}>
@@ -31,11 +45,14 @@ const Header = ({ title }) => {
 
                 <div className={styles.profile}>
                     <div className={styles.userInfo}>
-                        <span className={styles.userName}>Totok Michael</span>
-                        <span className={styles.userEmail}>tmichael20@mail.com</span>
+                        <span className={styles.userName}>{user.name}</span>
+                        <span className={styles.userEmail}>{user.email}</span>
                     </div>
                     <div className={styles.avatar}>
-                        <img src="https://i.pravatar.cc/150?img=12" alt="User" />
+                        <img
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=D32F2F&color=fff`}
+                            alt={user.name}
+                        />
                     </div>
                 </div>
             </div>
