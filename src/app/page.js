@@ -189,6 +189,7 @@ export default function Home() {
                 onAddClick={() => setIsModalOpen(true)}
                 showStartButton={selectedStat === 'Pending Videos'} // Show Start button for pending
                 onStartClick={handleStartVideo}
+                showDepartmentBadge={selectedStat === 'Running Videos'} // Show department badge for running videos
               />
             </div>
           )}

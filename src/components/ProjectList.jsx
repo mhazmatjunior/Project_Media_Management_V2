@@ -11,6 +11,7 @@ const ProjectList = ({
     onForwardClick,
     showFinishButton = false,
     onFinishClick,
+    showDepartmentBadge = false,
     title = "Videos List"
 }) => {
     return (
@@ -36,6 +37,11 @@ const ProjectList = ({
                                 <h4 className={styles.name}>{project.name}</h4>
                                 <p className={styles.date}>{project.date || project.description}</p>
                             </div>
+                            {showDepartmentBadge && project.currentDepartment && (
+                                <span className={styles.departmentBadge}>
+                                    {project.currentDepartment.charAt(0).toUpperCase() + project.currentDepartment.slice(1)}
+                                </span>
+                            )}
                             {showStartButton && onStartClick && (
                                 <button
                                     className={styles.startButton}

@@ -13,20 +13,24 @@ const OngoingVideoAnalytics = ({ videos = [] }) => {
     // Use passed videos prop (already filtered for running videos)
     const runningVideos = videos;
 
-    // Map videos to chart data
+    // Map videos to chart data, keeping the full video object
     const chartData = runningVideos.map(v => ({
         name: v.name,
         value: v.value || 50, // Default progress for running videos
         id: v.id,
+        currentDepartment: v.currentDepartment, // Include department info
         // Shorten name for X-axis if needed
-        shortName: v.name.length > 10 ? v.name.substring(0, 8) + '...' : v.name
+        shortName: v.name.length > 10 ? v.name.substring(0, 8) + '...' : v.name,
+        // Keep full video object for reference
+        video: v
     }));
 
     const handleBarClick = (data, index) => {
         if (data && data.activePayload && data.activePayload.length > 0) {
-            setSelectedVideo(data.activePayload[0].payload);
+            // Use the full video object from the payload
+            setSelectedVideo(data.activePayload[0].payload.video || data.activePayload[0].payload);
         } else if (data && data.payload) { // Direct click on Cell
-            setSelectedVideo(data.payload);
+            setSelectedVideo(data.payload.video || data.payload);
         }
     };
 
@@ -43,7 +47,7 @@ const OngoingVideoAnalytics = ({ videos = [] }) => {
 
                     <div className={styles.splitContent}>
                         <div className={styles.half}>
-                            <ProgressChart embedded={true} />
+                            <ProgressChart embedded={true} video={selectedVideo} />
                         </div>
                         <div className={styles.separator} />
                         <div className={styles.half}>
