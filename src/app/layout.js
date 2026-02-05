@@ -11,23 +11,16 @@ export const metadata = {
 
 import StoreProvider from "./StoreProvider";
 
+import LayoutWrapper from "@/components/LayoutWrapper";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <StoreProvider>
-          <div style={{ display: 'flex' }}>
-            <Sidebar />
-            <main style={{
-              marginLeft: 'var(--sidebar-width)',
-              flex: 1,
-              padding: '0 40px',
-              minHeight: '100vh',
-              backgroundColor: 'var(--background-color)'
-            }}>
-              {children}
-            </main>
-          </div>
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
         </StoreProvider>
       </body>
     </html>
