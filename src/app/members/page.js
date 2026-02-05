@@ -1,10 +1,31 @@
 import { Trash2, Edit2 } from "lucide-react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import styles from "./page.module.css";
 import { db, schema } from "@/db";
 import { ne } from "drizzle-orm";
 
 export default async function MembersPage() {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('user_session');
+
+    if (!sessionCookie) {
+        redirect('/');
+    }
+
+    let userRole = null;
+    try {
+        const session = JSON.parse(sessionCookie.value);
+        userRole = session.role;
+    } catch (e) {
+        redirect('/');
+    }
+
+    if (userRole !== 'main_team') {
+        redirect('/');
+    }
+
     // Fetch users excluding 'main_team'
     const users = await db.query.users.findMany({
         where: ne(schema.users.role, 'main_team'),

@@ -79,7 +79,12 @@ const Sidebar = () => {
 
   const generalItems = [
     { name: "Members", icon: Users, path: "/members" },
-  ];
+  ].filter(item => {
+    if (!user) return false;
+    // Only show Members to main_team
+    if (item.path === '/members' && user.role !== 'main_team') return false;
+    return true;
+  });
 
   return (
     <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
