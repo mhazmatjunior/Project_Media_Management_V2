@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Search, Mail, Bell, Command } from "lucide-react";
 import { getSession } from "@/lib/auth";
