@@ -12,6 +12,7 @@ export default function WriterPage() {
     const [writerVideos, setWriterVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
+    const [members, setMembers] = useState([]);
 
     // Check authentication
     useEffect(() => {
@@ -25,8 +26,19 @@ export default function WriterPage() {
     useEffect(() => {
         if (authChecked) {
             fetchWriterVideos();
+            fetchMembers();
         }
     }, [authChecked]);
+
+    const fetchMembers = async () => {
+        try {
+            const response = await fetch('/api/users/department/writer');
+            const data = await response.json();
+            setMembers(data);
+        } catch (error) {
+            console.error('Error fetching members:', error);
+        }
+    };
 
     const fetchWriterVideos = async () => {
         try {
@@ -43,6 +55,29 @@ export default function WriterPage() {
         }
     };
 
+    const handleAssign = async (videoId, userId) => {
+        try {
+            const response = await fetch(`/api/videos/${videoId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    assignedTo: userId,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to assign video');
+            }
+
+            await fetchWriterVideos();
+        } catch (error) {
+            console.error('Error assigning video:', error);
+            alert('Failed to assign video. Please try again.');
+        }
+    };
+
     const handleForward = async (videoId) => {
         try {
             const response = await fetch(`/api/videos/${videoId}`, {
@@ -52,6 +87,7 @@ export default function WriterPage() {
                 },
                 body: JSON.stringify({
                     currentDepartment: 'speaker',
+                    assignedTo: null,
                 }),
             });
 
@@ -72,7 +108,7 @@ export default function WriterPage() {
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <Header title="Writer Department" />
+            <Header title="Writer Dep" />
             <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
                 <div style={{ marginBottom: '24px', padding: '24px', background: 'var(--surface-color)', borderRadius: 'var(--border-radius-md)' }}>
                     <h2>Content Creation</h2>
@@ -82,12 +118,21 @@ export default function WriterPage() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-                    <ProjectList
-                        title="Active Tasks"
-                        projects={loading ? [] : writerVideos}
-                        showForwardButton={true}
-                        onForwardClick={handleForward}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        <ProjectList
+                            title="Active Tasks"
+                            projects={loading ? [] : writerVideos}
+                            showForwardButton={true}
+                            onForwardClick={handleForward}
+                            members={members}
+                            onAssign={handleAssign}
+                        />
+                        <ProjectList
+                            title="Completed Tasks"
+                            projects={[]}
+                            showDepartmentBadge={true}
+                        />
+                    </div>
                     <TimeTracker />
                 </div>
             </div>

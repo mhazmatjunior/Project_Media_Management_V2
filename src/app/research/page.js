@@ -12,6 +12,7 @@ export default function ResearchPage() {
     const [researchVideos, setResearchVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
+    const [members, setMembers] = useState([]);
 
     // Check authentication
     useEffect(() => {
@@ -25,8 +26,19 @@ export default function ResearchPage() {
     useEffect(() => {
         if (authChecked) {
             fetchResearchVideos();
+            fetchMembers();
         }
     }, [authChecked]);
+
+    const fetchMembers = async () => {
+        try {
+            const response = await fetch('/api/users/department/research');
+            const data = await response.json();
+            setMembers(data);
+        } catch (error) {
+            console.error('Error fetching members:', error);
+        }
+    };
 
     const fetchResearchVideos = async () => {
         try {
@@ -44,6 +56,30 @@ export default function ResearchPage() {
         }
     };
 
+    const handleAssign = async (videoId, userId) => {
+        try {
+            const response = await fetch(`/api/videos/${videoId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    assignedTo: userId,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to assign video');
+            }
+
+            // Refresh the list
+            await fetchResearchVideos();
+        } catch (error) {
+            console.error('Error assigning video:', error);
+            alert('Failed to assign video. Please try again.');
+        }
+    };
+
     const handleForward = async (videoId) => {
         try {
             const response = await fetch(`/api/videos/${videoId}`, {
@@ -53,6 +89,7 @@ export default function ResearchPage() {
                 },
                 body: JSON.stringify({
                     currentDepartment: 'writer',
+                    assignedTo: null, // Reset assignment when forwarding
                 }),
             });
 
@@ -75,7 +112,7 @@ export default function ResearchPage() {
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <Header title="Research Department" />
+            <Header title="Research Dep" />
             <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
                 <div style={{ marginBottom: '24px', padding: '24px', background: 'var(--surface-color)', borderRadius: 'var(--border-radius-md)' }}>
                     <h2>Research Tasks</h2>
@@ -85,12 +122,21 @@ export default function ResearchPage() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-                    <ProjectList
-                        title="Active Tasks"
-                        projects={loading ? [] : researchVideos}
-                        showForwardButton={true}
-                        onForwardClick={handleForward}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        <ProjectList
+                            title="Active Tasks"
+                            projects={loading ? [] : researchVideos}
+                            showForwardButton={true}
+                            onForwardClick={handleForward}
+                            members={members}
+                            onAssign={handleAssign}
+                        />
+                        <ProjectList
+                            title="Completed Tasks"
+                            projects={[]}
+                            showDepartmentBadge={true}
+                        />
+                    </div>
                     <TimeTracker />
                 </div>
             </div>

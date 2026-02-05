@@ -6,6 +6,8 @@ export const users = pgTable('users', {
     email: text('email').notNull().unique(),
     name: text('name').notNull(),
     password: text('password').notNull(),
+    role: text('role').notNull().default('member'), // 'main_team', 'team_lead', 'member'
+    departments: text('departments'), // JSON string or comma-separated list of departments
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -23,6 +25,7 @@ export const videos = pgTable('videos', {
     likes: integer('likes').default(0),
     duration: integer('duration'), // in seconds
     userId: integer('user_id').references(() => users.id),
+    assignedTo: integer('assigned_to').references(() => users.id),
     isPublished: boolean('is_published').default(false),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

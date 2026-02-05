@@ -19,6 +19,15 @@ export async function PUT(request, { params }) {
         if (body.currentDepartment !== undefined) {
             updateData.currentDepartment = body.currentDepartment;
         }
+        if (body.assignedTo !== undefined) {
+            // Handle "0", "", or valid number string to integer or null
+            if (body.assignedTo === "" || body.assignedTo === null || body.assignedTo === "null") {
+                updateData.assignedTo = null;
+            } else {
+                const parsedId = parseInt(body.assignedTo);
+                updateData.assignedTo = isNaN(parsedId) ? null : parsedId;
+            }
+        }
 
         updateData.updatedAt = new Date();
 

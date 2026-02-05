@@ -6,8 +6,12 @@ import { eq, desc } from 'drizzle-orm';
 export async function GET() {
     try {
         const videos = await db
-            .select()
+            .select({
+                ...schema.videos,
+                assigneeName: schema.users.name,
+            })
             .from(schema.videos)
+            .leftJoin(schema.users, eq(schema.videos.assignedTo, schema.users.id))
             .orderBy(desc(schema.videos.createdAt));
 
         // Map database statuses to app terminology
@@ -23,6 +27,8 @@ export async function GET() {
             views: video.views,
             likes: video.likes,
             duration: video.duration,
+            assignedTo: video.assignedTo,
+            assigneeName: video.assigneeName,
         }));
 
         return NextResponse.json(mappedVideos);
