@@ -1,73 +1,148 @@
-.dashboard {
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-color);
+  padding: 20px;
+}
+
+.loginCard {
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-lg);
+  padding: 48px 40px;
   width: 100%;
-  height: 100vh;
-  /* Lock to viewport height */
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.logoWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--primary-color), #b71c1c);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: white;
+  box-shadow: 0 4px 16px rgba(211, 47, 47, 0.4);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.form {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  /* Prevent scrolling */
+  gap: 24px;
 }
 
-.mainGrid {
+.inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  flex: 1;
-  /* Fill remaining space below header */
-  padding: 0 24px 24px 24px;
-  /* Move padding here if needed, or rely on global layout */
-  min-height: 0;
-  /* Critical for nested flex scrolling if needed, also prevents overflow */
+  gap: 8px;
 }
 
-.statsRow {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  flex-shrink: 0;
-  /* Ensure stats don't shrink */
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* New Split Row for Analytics + Reminder */
-.splitRow {
-  display: flex;
-  gap: 24px;
-  flex: 1;
-  /* Fill all remaining vertical space */
-  min-height: 0;
-  /* Allow children to manage their own overflow */
+.input {
+  background-color: #0a0a0a;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 14px 16px;
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  outline: none;
 }
 
-.analyticsWrapper {
-  flex: 3;
-  /* 75% width roughly */
-  height: 100%;
+.input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
 }
 
-.reminderWrapper {
-  flex: 1;
-  /* 25% width */
-  height: 100%;
+.input::placeholder {
+  color: #555;
 }
 
-@media (max-width: 1200px) {
-  .statsRow {
-    grid-template-columns: repeat(2, 1fr);
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  background-color: rgba(211, 47, 47, 0.1);
+  border: 1px solid rgba(211, 47, 47, 0.3);
+  border-radius: var(--border-radius-sm);
+  padding: 12px 16px;
+  color: #ff6b6b;
+  font-size: 13px;
+  text-align: center;
+}
+
+.submitButton {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.submitButton:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .loginCard {
+    padding: 36px 28px;
   }
-}
 
-@media (max-width: 768px) {
-  .dashboard {
-    height: auto;
-    min-height: 100vh;
-    overflow: auto;
-  }
-
-  .statsRow {
-    grid-template-columns: 1fr;
-  }
-
-  .splitRow {
-    flex-direction: column;
+  .title {
+    font-size: 24px;
   }
 }

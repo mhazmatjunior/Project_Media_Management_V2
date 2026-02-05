@@ -1,17 +1,32 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
 
 export default function GraphicsPage() {
+    const router = useRouter();
     const [graphicsVideos, setGraphicsVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [authChecked, setAuthChecked] = useState(false);
+
+    // Check authentication
+    useEffect(() => {
+        if (!isAuthenticated()) {
+            router.push('/');
+        } else {
+            setAuthChecked(true);
+        }
+    }, [router]);
 
     useEffect(() => {
-        fetchGraphicsVideos();
-    }, []);
+        if (authChecked) {
+            fetchGraphicsVideos();
+        }
+    }, [authChecked]);
 
     const fetchGraphicsVideos = async () => {
         try {
@@ -51,6 +66,10 @@ export default function GraphicsPage() {
             alert('Failed to finish video. Please try again.');
         }
     };
+
+    if (!authChecked) {
+        return null;
+    }
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>

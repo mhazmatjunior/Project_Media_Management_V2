@@ -1,17 +1,32 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
 
 export default function ResearchPage() {
+    const router = useRouter();
     const [researchVideos, setResearchVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [authChecked, setAuthChecked] = useState(false);
+
+    // Check authentication
+    useEffect(() => {
+        if (!isAuthenticated()) {
+            router.push('/');
+        } else {
+            setAuthChecked(true);
+        }
+    }, [router]);
 
     useEffect(() => {
-        fetchResearchVideos();
-    }, []);
+        if (authChecked) {
+            fetchResearchVideos();
+        }
+    }, [authChecked]);
 
     const fetchResearchVideos = async () => {
         try {
@@ -52,6 +67,11 @@ export default function ResearchPage() {
             alert('Failed to forward video. Please try again.');
         }
     };
+
+    // Don't render until auth is verified
+    if (!authChecked) {
+        return null;
+    }
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>

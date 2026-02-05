@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { clearSession } from "@/lib/auth";
 import {
   LayoutDashboard, FileSearch, PenTool, Mic, Palette, Settings,
   HelpCircle, LogOut, ChevronLeft, ChevronRight
@@ -12,6 +13,7 @@ import styles from "./Sidebar.module.css";
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
@@ -21,8 +23,17 @@ const Sidebar = () => {
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
+  const handleLogout = async () => {
+    // Call logout API to clear cookie
+    await fetch('/api/logout', { method: 'POST' });
+    // Clear localStorage
+    clearSession();
+    // Redirect to login
+    router.push('/');
+  };
+
   const menuItems = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { name: "Research Dep", icon: FileSearch, path: "/research" },
     { name: "Writer Dep", icon: PenTool, path: "/writer" },
     { name: "Speaker Dep", icon: Mic, path: "/speaker" },
@@ -87,6 +98,7 @@ const Sidebar = () => {
           <div className={styles.logoutRow}>
             <button
               className={`${styles.navItem} ${styles.logoutBtn}`}
+              onClick={handleLogout}
               title={isCollapsed ? "Logout" : ''}
             >
               <div className={styles.iconWrapper}><LogOut size={20} /></div>

@@ -1,0 +1,73 @@
+.dashboard {
+  width: 100%;
+  height: 100vh;
+  /* Lock to viewport height */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Prevent scrolling */
+}
+
+.mainGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+  /* Fill remaining space below header */
+  padding: 0 24px 24px 24px;
+  /* Move padding here if needed, or rely on global layout */
+  min-height: 0;
+  /* Critical for nested flex scrolling if needed, also prevents overflow */
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  flex-shrink: 0;
+  /* Ensure stats don't shrink */
+}
+
+/* New Split Row for Analytics + Reminder */
+.splitRow {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  /* Fill all remaining vertical space */
+  min-height: 0;
+  /* Allow children to manage their own overflow */
+}
+
+.analyticsWrapper {
+  flex: 3;
+  /* 75% width roughly */
+  height: 100%;
+}
+
+.reminderWrapper {
+  flex: 1;
+  /* 25% width */
+  height: 100%;
+}
+
+@media (max-width: 1200px) {
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .splitRow {
+    flex-direction: column;
+  }
+}

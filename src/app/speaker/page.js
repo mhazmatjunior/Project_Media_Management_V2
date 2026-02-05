@@ -1,17 +1,32 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
 
 export default function SpeakerPage() {
+    const router = useRouter();
     const [speakerVideos, setSpeakerVideos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [authChecked, setAuthChecked] = useState(false);
+
+    // Check authentication
+    useEffect(() => {
+        if (!isAuthenticated()) {
+            router.push('/');
+        } else {
+            setAuthChecked(true);
+        }
+    }, [router]);
 
     useEffect(() => {
-        fetchSpeakerVideos();
-    }, []);
+        if (authChecked) {
+            fetchSpeakerVideos();
+        }
+    }, [authChecked]);
 
     const fetchSpeakerVideos = async () => {
         try {
@@ -50,6 +65,10 @@ export default function SpeakerPage() {
             alert('Failed to forward video. Please try again.');
         }
     };
+
+    if (!authChecked) {
+        return null;
+    }
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
