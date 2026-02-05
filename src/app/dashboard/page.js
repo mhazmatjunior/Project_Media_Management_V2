@@ -20,11 +20,28 @@ export default function DashboardPage() {
   const [authChecked, setAuthChecked] = useState(false);
 
   // Check authentication
+  // Check authentication and role
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/');
     } else {
-      setAuthChecked(true);
+      const session = JSON.parse(localStorage.getItem('user_session'));
+      if (session?.role !== 'main_team') {
+        // Redirect unauthorized users to their department
+        let dest = '/research';
+        if (session.departments) {
+          try {
+            const deps = JSON.parse(session.departments);
+            if (Array.isArray(deps) && deps.length > 0) dest = `/${deps[0].toLowerCase()}`;
+          } catch (e) {
+            const deps = session.departments.split(',');
+            if (deps.length > 0 && deps[0].trim()) dest = `/${deps[0].trim().toLowerCase()}`;
+          }
+        }
+        router.push(dest);
+      } else {
+        setAuthChecked(true);
+      }
     }
   }, [router]);
 

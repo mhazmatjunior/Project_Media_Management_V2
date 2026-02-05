@@ -34,9 +34,31 @@ export default function LoginPage() {
         return;
       }
 
-      // Save session and redirect to dashboard
+      // Save session and redirect based on role
       setSession(data.user);
-      router.push("/dashboard");
+
+      if (data.user.role === 'main_team') {
+        router.push("/dashboard");
+      } else {
+        // Redirect to first assigned department or default to research
+        let dest = '/research';
+        if (data.user.departments) {
+          try {
+            // Try parsing as JSON array
+            const deps = JSON.parse(data.user.departments);
+            if (Array.isArray(deps) && deps.length > 0) {
+              dest = `/${deps[0].toLowerCase()}`;
+            }
+          } catch (e) {
+            // Try splitting by comma
+            const deps = data.user.departments.split(',');
+            if (deps.length > 0 && deps[0].trim()) {
+              dest = `/${deps[0].trim().toLowerCase()}`;
+            }
+          }
+        }
+        router.push(dest);
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError("An error occurred. Please try again.");

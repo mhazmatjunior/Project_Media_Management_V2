@@ -32,13 +32,50 @@ const Sidebar = () => {
     router.push('/');
   };
 
-  const menuItems = [
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // get user from localstorage
+    const session = localStorage.getItem('user_session');
+    if (session) {
+      setUser(JSON.parse(session));
+    }
+  }, []);
+
+  const allMenuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { name: "Research Dep", icon: FileSearch, path: "/research" },
-    { name: "Writer Dep", icon: PenTool, path: "/writer" },
-    { name: "Speaker Dep", icon: Mic, path: "/speaker" },
-    { name: "Graphics Dep", icon: Palette, path: "/graphics" },
+    { name: "Research Dep", icon: FileSearch, path: "/research", key: "research" },
+    { name: "Writer Dep", icon: PenTool, path: "/writer", key: "writer" },
+    { name: "Speaker Dep", icon: Mic, path: "/speaker", key: "speaker" },
+    { name: "Graphics Dep", icon: Palette, path: "/graphics", key: "graphics" },
   ];
+
+  const menuItems = allMenuItems.filter(item => {
+    if (!user) return false;
+    if (user.role === 'main_team') return true;
+
+    // For non-main team
+    if (item.path === '/dashboard') return false;
+
+    // Check departments
+    let userDeps = [];
+    if (user.departments) {
+      try {
+        const parsed = JSON.parse(user.departments);
+        userDeps = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        userDeps = user.departments.split(',').map(d => d.trim());
+      }
+    }
+
+    // Normalize to lowercase
+    userDeps = userDeps.map(d => d.toLowerCase());
+
+    // Only show if user has this department
+    if (item.key && userDeps.includes(item.key)) return true;
+
+    return false;
+  });
 
   const generalItems = [
     { name: "Members", icon: Users, path: "/members" },

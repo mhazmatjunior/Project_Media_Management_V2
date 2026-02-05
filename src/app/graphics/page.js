@@ -15,11 +15,37 @@ export default function GraphicsPage() {
     const [members, setMembers] = useState([]);
 
     // Check authentication
+    // Check authentication and permissions
     useEffect(() => {
         if (!isAuthenticated()) {
             router.push('/');
         } else {
-            setAuthChecked(true);
+            const session = JSON.parse(localStorage.getItem('user_session'));
+            if (session) {
+                let hasAccess = false;
+                if (session.role === 'main_team') hasAccess = true;
+                else {
+                    let userDeps = [];
+                    if (session.departments) {
+                        try {
+                            const parsed = JSON.parse(session.departments);
+                            userDeps = Array.isArray(parsed) ? parsed : [];
+                        } catch (e) {
+                            userDeps = session.departments.split(',').map(d => d.trim());
+                        }
+                    }
+                    // Normalize
+                    userDeps = userDeps.map(d => d.toLowerCase());
+
+                    if (userDeps.includes('graphics')) hasAccess = true;
+                }
+
+                if (hasAccess) {
+                    setAuthChecked(true);
+                } else {
+                    router.push('/');
+                }
+            }
         }
     }, [router]);
 

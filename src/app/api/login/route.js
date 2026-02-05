@@ -41,21 +41,21 @@ export async function POST(request) {
         }
 
         // Return user data (excluding password) and set session cookie
-        const response = NextResponse.json({
-            success: true,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-            }
-        });
-
-        // Set HTTP-only cookie for middleware authentication
-        response.cookies.set('user_session', JSON.stringify({
+        const userData = {
             id: user.id,
             email: user.email,
             name: user.name,
-        }), {
+            role: user.role,
+            departments: user.departments
+        };
+
+        const response = NextResponse.json({
+            success: true,
+            user: userData
+        });
+
+        // Set HTTP-only cookie for middleware authentication
+        response.cookies.set('user_session', JSON.stringify(userData), {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
