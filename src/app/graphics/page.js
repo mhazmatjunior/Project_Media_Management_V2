@@ -146,6 +146,9 @@ export default function GraphicsPage() {
             }
 
             await fetchGraphicsVideos();
+            if (selectedTask?.id === videoId) {
+                setSelectedTask(null);
+            }
         } catch (error) {
             console.error('Error finishing video:', error);
             alert('Failed to finish video. Please try again.');

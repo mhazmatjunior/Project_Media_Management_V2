@@ -1,8 +1,10 @@
 "use client";
 
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { setSession } from "@/lib/auth";
+import { Instagram, Facebook, Twitter } from "lucide-react";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
@@ -123,6 +125,18 @@ export default function LoginPage() {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
+
+          <div className={styles.socialLinks}>
+            <a href="#" className={styles.socialIcon} onClick={e => e.preventDefault()}>
+              <Instagram size={22} />
+            </a>
+            <a href="#" className={styles.socialIcon} onClick={e => e.preventDefault()}>
+              <Facebook size={22} />
+            </a>
+            <a href="#" className={styles.socialIcon} onClick={e => e.preventDefault()}>
+              <Twitter size={22} />
+            </a>
+          </div>
         </form>
       </div>
     </div>

@@ -121,6 +121,7 @@ function calculateProgress(status) {
     const progressMap = {
         'pending': 0,
         'in_progress': 50,
+        'department_completed': 75,
         'completed': 100,
     };
     return progressMap[status] || 0;

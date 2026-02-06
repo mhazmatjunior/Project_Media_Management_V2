@@ -148,6 +148,9 @@ export default function WriterPage() {
             }
 
             await fetchWriterVideos();
+            if (selectedTask?.id === videoId) {
+                setSelectedTask(null);
+            }
         } catch (error) {
             console.error('Error forwarding video:', error);
             alert('Failed to forward video. Please try again.');

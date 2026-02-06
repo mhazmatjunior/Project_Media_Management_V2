@@ -148,7 +148,7 @@ const ProjectList = ({
             <div className={styles.list}>
                 {loading ? (
                     // Loading Skeletons
-                    Array.from({ length: 3 }).map((_, i) => (
+                    Array.from({ length: 1 }).map((_, i) => (
                         <div key={i} className={`${styles.item} ${styles.skeletonItem}`}>
                             <div className={`${styles.icon} ${styles.skeletonPulse}`} style={{ backgroundColor: 'var(--border-color)' }}></div>
                             <div className={styles.details}>

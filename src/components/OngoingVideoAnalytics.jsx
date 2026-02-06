@@ -10,6 +10,7 @@ import styles from "./OngoingVideoAnalytics.module.css";
 const OngoingVideoAnalytics = ({ videos = [] }) => {
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [teamMembers, setTeamMembers] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
 
     // Use passed videos prop (already filtered for running videos)
     const runningVideos = videos;
@@ -17,22 +18,26 @@ const OngoingVideoAnalytics = ({ videos = [] }) => {
     // Fetch history when selectedVideo changes
     useEffect(() => {
         if (selectedVideo) {
+            setLoadingHistory(true);
             fetch(`/api/videos/${selectedVideo.id}/history`)
                 .then(res => res.json())
                 .then(data => {
                     const members = [...data];
-                    // Add current assignee if exists
-                    if (selectedVideo.assignedTo && selectedVideo.assigneeName) {
+                    // Add current assignee if exists AND video is currently running (not department_completed)
+                    if (selectedVideo.assignedTo && selectedVideo.assigneeName && selectedVideo.status === 'running') {
                         members.push({
                             name: selectedVideo.assigneeName,
                             role: `Working on ${selectedVideo.currentDepartment ? selectedVideo.currentDepartment.charAt(0).toUpperCase() + selectedVideo.currentDepartment.slice(1) : 'Task'}`,
                             status: 'In Progress',
-                            img: `https://i.pravatar.cc/150?u=${selectedVideo.assigneeName}`
+                            img: `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedVideo.assigneeName)}&background=random`
                         });
                     }
                     setTeamMembers(members);
                 })
-                .catch(err => console.error('Error fetching history:', err));
+                .catch(err => console.error('Error fetching history:', err))
+                .finally(() => setLoadingHistory(false));
+        } else {
+            setTeamMembers([]);
         }
     }, [selectedVideo]);
 
@@ -73,7 +78,7 @@ const OngoingVideoAnalytics = ({ videos = [] }) => {
                         </div>
                         <div className={styles.separator} />
                         <div className={styles.half}>
-                            <TeamList embedded={true} members={teamMembers} />
+                            <TeamList embedded={true} members={teamMembers} loading={loadingHistory} />
                         </div>
                     </div>
                 </div>

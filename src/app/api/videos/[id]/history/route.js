@@ -37,7 +37,7 @@ export async function GET(request, { params }) {
             department: item.department,
             date: item.timestamp,
             // Generate deterministic avatar based on name length/char
-            img: `https://i.pravatar.cc/150?u=${item.user?.name || 'user'}`
+            img: `https://ui-avatars.com/api/?name=${encodeURIComponent(item.user?.name || 'User')}&background=random`
         }));
 
         return NextResponse.json(formattedHistory);

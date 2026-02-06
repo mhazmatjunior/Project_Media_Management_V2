@@ -108,7 +108,7 @@
 
 /* Assignment Styles */
 .assignContainer {
-    margin-right: 12px;
+    margin-left: auto;
 }
 
 .dropdownWrapper {
@@ -120,13 +120,13 @@
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     padding: 6px 12px;
-    border-radius: var(--border-radius-sm);
+    border-radius: 8px;
     font-size: 13px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 100px;
+    min-width: 115px;
     justify-content: space-between;
     transition: all 0.2s;
 }
@@ -137,9 +137,9 @@
 
 .assignedButton {
     background-color: #10B981;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 8px;
-    padding: 6px 14px;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -147,7 +147,7 @@
     font-weight: 500;
     color: white;
     cursor: pointer;
-    min-width: 110px;
+    min-width: 115px;
     justify-content: center;
     transition: all 0.2s;
 }
