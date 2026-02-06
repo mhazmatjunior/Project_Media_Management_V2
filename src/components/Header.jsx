@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mail, Bell, X } from "lucide-react";
+import { Mail, Bell, X, Menu } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { useChat } from "@/context/ChatContext";
+import { useSidebar } from "@/context/SidebarContext";
 import styles from "./Header.module.css";
 
 const Header = ({ title }) => {
@@ -14,6 +15,7 @@ const Header = ({ title }) => {
     const [notifications, setNotifications] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const { toggleChat, totalUnread } = useChat();
+    const { isMobile, toggleMobileSidebar } = useSidebar();
 
     useEffect(() => {
         const sessionUser = getSession();
@@ -24,10 +26,6 @@ const Header = ({ title }) => {
     }, []);
 
     // ... (fetchNotifications, formatDate, etc - kept same)
-
-    // Wait, replace_file_content works on blocks. I need to be precise.
-    // I will replace the useChat destruction and the Mail button block.
-
 
     const fetchNotifications = async () => {
         try {
@@ -60,6 +58,11 @@ const Header = ({ title }) => {
     return (
         <header className={styles.header}>
             <div className={styles.headerTitle}>
+                {isMobile && (
+                    <button onClick={toggleMobileSidebar} className={styles.menuButton}>
+                        <Menu size={24} />
+                    </button>
+                )}
                 <h1>{title || "Dashboard"}</h1>
             </div>
 

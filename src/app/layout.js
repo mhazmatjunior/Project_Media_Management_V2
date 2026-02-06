@@ -14,15 +14,19 @@ import StoreProvider from "./StoreProvider";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import { ChatProvider } from "@/context/ChatContext";
 
+import { SidebarProvider } from "@/context/SidebarContext";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <StoreProvider>
           <ChatProvider>
-            <LayoutWrapper>
-              {children}
-            </LayoutWrapper>
+            <SidebarProvider>
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
+            </SidebarProvider>
           </ChatProvider>
         </StoreProvider>
       </body>

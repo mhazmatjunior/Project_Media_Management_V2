@@ -204,3 +204,38 @@
 .sendButton:hover {
     background-color: var(--primary-hover);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .widgetContainer {
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 0;
+        border: none;
+        z-index: 2000;
+        /* Higher z-index to cover everything */
+    }
+
+    .header {
+        padding: 16px;
+        /* Larger touch target */
+    }
+
+    .messagesList {
+        padding-bottom: 80px;
+        /* Make space for keyboard/input */
+    }
+
+    .inputArea {
+        padding: 16px;
+    }
+
+    .input {
+        font-size: 16px;
+        /* Prevent zoom on iOS */
+    }
+}

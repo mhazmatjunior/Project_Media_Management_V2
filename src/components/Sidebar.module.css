@@ -2,7 +2,6 @@
     width: var(--sidebar-width);
     height: 100vh;
     background-color: var(--background-color);
-    /* border-right: 1px solid var(--border-color); Removed for seamless look */
     display: flex;
     flex-direction: column;
     padding: 30px 20px;
@@ -10,8 +9,46 @@
     left: 0;
     top: 0;
     overflow: hidden;
-    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     z-index: 100;
+}
+
+/* --- Mobile Styles --- */
+.sidebar.mobile {
+    width: 280px;
+    /* Fixed width for mobile drawer */
+    transform: translateX(-100%);
+    /* Hidden by default */
+    z-index: 2000;
+    /* Above everything */
+    box-shadow: none;
+}
+
+.sidebar.mobile.open {
+    transform: translateX(0);
+    /* Slide in */
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1500;
+    backdrop-filter: blur(2px);
+}
+
+.mobileCloseBtn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    margin-left: auto;
+    /* Push to right */
+    cursor: pointer;
+    padding: 8px;
 }
 
 /* --- Logo Transition --- */
@@ -43,7 +80,7 @@
     transition: opacity 0.2s ease-in-out, transform 0.3s ease-in-out;
 }
 
-/* Collapsed State for Logo */
+/* Collapsed State for Logo (Desktop Only) */
 .sidebar.collapsed {
     padding: 30px 10px;
 }
@@ -85,7 +122,6 @@
 .sidebar.collapsed .menuTitle {
     opacity: 0;
     margin-bottom: 5px;
-    /* Restored previous compact spacing */
     height: 15px;
     overflow: hidden;
 }
@@ -167,7 +203,6 @@
     gap: 10px;
     width: 100%;
     margin-top: 10px;
-    /* Restored original margin */
     transition: all 0.4s ease;
 }
 
@@ -179,7 +214,6 @@
 .sidebar.collapsed .logoutRow {
     flex-direction: column;
     gap: 8px;
-    /* Removed margin-top override */
 }
 
 .sidebar.collapsed .logoutBtn {

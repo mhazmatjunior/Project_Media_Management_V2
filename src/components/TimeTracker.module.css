@@ -99,3 +99,9 @@
     border: 1px solid rgba(0, 0, 0, 0.03);
     z-index: 1;
 }
+
+@media (max-width: 768px) {
+    .card {
+        display: none;
+    }
+}

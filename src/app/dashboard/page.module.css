@@ -1,11 +1,11 @@
 .dashboard {
   width: 100%;
   height: 100vh;
-  /* Lock to viewport height */
+  /* Lock height for percent children */
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  /* Prevent scrolling */
+  overflow-y: auto;
+  /* Allow scroll if content overflows */
 }
 
 .mainGrid {
@@ -60,14 +60,40 @@
   .dashboard {
     height: auto;
     min-height: 100vh;
-    overflow: auto;
+    overflow-y: auto;
+    /* Allow scrolling on mobile */
+  }
+
+  .mainGrid {
+    padding: 24px 16px;
+    /* Added top padding to balance */
+    height: auto;
+    overflow: visible;
+    max-width: 600px;
+    /* Constrain width for centering */
+    margin: 0 auto;
+    /* Center the grid horizontally */
+    width: 100%;
   }
 
   .statsRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columns for stat cards */
+    gap: 12px;
+    /* Smaller gap on mobile */
   }
 
   .splitRow {
     flex-direction: column;
+    height: auto;
+  }
+
+  .analyticsWrapper {
+    display: none;
+  }
+
+  .reminderWrapper {
+    height: auto;
+    /* Allow card to dictate height */
   }
 }

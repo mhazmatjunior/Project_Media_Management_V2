@@ -1,0 +1,114 @@
+/* Shared Layout Styles for Department Pages */
+.pageContainer {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Lock viewport */
+    width: 100%;
+}
+
+.contentContainer {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.pageHeader {
+    margin-bottom: 24px;
+    padding: 24px;
+    background: var(--surface-color);
+    border-radius: var(--border-radius-md);
+}
+
+.pageTitle {
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.pageDescription {
+    color: var(--text-secondary);
+}
+
+/* Two Column Layout (Task List + Time Tracker) */
+.gridContainer {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+    /* Default, but explicit */
+}
+
+.taskListColumn {
+    display: contents;
+    /* Remove wrapper from grid flow */
+}
+
+/* 
+   Since .taskListColumn provides 2 children (Active, Completed)
+   and TimeTracker is the 3rd child in DOM order:
+   1. Active Task List
+   2. Completed Task List
+   3. Time Tracker
+   
+   We want:
+   Row 1: Active (Left) | TimeTracker (Right)
+   Row 2: Completed (Left)
+*/
+
+.taskListColumn> :nth-child(1) {
+    grid-column: 1 / 2;
+    grid-row: 1;
+}
+
+.taskListColumn> :nth-child(2) {
+    grid-column: 1 / 2;
+    grid-row: 2;
+}
+
+/* Target TimeTracker (3rd child of grid due to unwrap) */
+.gridContainer> :last-child {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    /* Height will match Active Tasks in Row 1 */
+    height: 100%;
+    /* Ensure it fills the cell */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    .gridContainer {
+        grid-template-columns: 1fr;
+        /* Stack on smaller desktops/tablets */
+    }
+}
+
+@media (max-width: 768px) {
+    .pageContainer {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+        /* Allow Window Scroll on Mobile */
+    }
+
+    .contentContainer {
+        padding: 16px;
+        overflow-y: visible;
+        /* Let content grow */
+        height: auto;
+    }
+
+    .pageHeader {
+        padding: 16px;
+        margin-bottom: 16px;
+        text-align: center;
+        /* Center text */
+    }
+
+    .gridContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+}

@@ -324,3 +324,48 @@
         opacity: 0.6;
     }
 }
+
+@media (max-width: 768px) {
+    .item {
+        flex-wrap: wrap;
+        gap: 12px 8px;
+        /* Row gap 12px, Col gap 8px */
+    }
+
+    .details {
+        min-width: calc(100% - 50px);
+        /* Fill rest of row alongside icon */
+    }
+
+    /* Force buttons to new line full width */
+    .assignContainer,
+    .startButton,
+    .forwardButton,
+    .finishButton {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 4px;
+        justify-content: center;
+        /* Smaller size adjustments */
+        padding: 4px 10px;
+        font-size: 11px;
+        height: 28px;
+        /* Enforce smaller height */
+    }
+
+    .assignTrigger,
+    .assignedButton {
+        width: 100%;
+        justify-content: center;
+        /* Smaller size adjustments */
+        padding: 4px 10px;
+        font-size: 11px;
+        min-height: 28px;
+    }
+
+    .card {
+        width: 100%;
+        min-height: 150px;
+        /* Ensure visual consistency when empty */
+    }
+}

@@ -6,41 +6,35 @@ import { usePathname, useRouter } from "next/navigation";
 import { clearSession } from "@/lib/auth";
 import {
   LayoutDashboard, FileSearch, PenTool, Mic, Palette, Users,
-  LogOut, ChevronLeft, ChevronRight
+  LogOut, ChevronLeft, ChevronRight, X
 } from "lucide-react";
 import Logo from "./Logo";
 import styles from "./Sidebar.module.css";
+import { useSidebar } from "@/context/SidebarContext";
 
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  useEffect(() => {
-    const width = isCollapsed ? '80px' : '250px';
-    document.documentElement.style.setProperty('--sidebar-width', width);
-  }, [isCollapsed]);
-
-  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
+  const { isCollapsed, toggleCollapse, isMobile, isMobileOpen, closeMobileSidebar } = useSidebar();
+  const [user, setUser] = useState(null);
 
   const handleLogout = async () => {
-    // Call logout API to clear cookie
     await fetch('/api/logout', { method: 'POST' });
-    // Clear localStorage
     clearSession();
-    // Redirect to login
     router.push('/');
   };
 
-  const [user, setUser] = useState(null);
-
   useEffect(() => {
-    // get user from localstorage
     const session = localStorage.getItem('user_session');
     if (session) {
       setUser(JSON.parse(session));
     }
   }, []);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    if (isMobile) closeMobileSidebar();
+  }, [pathname, isMobile]);
 
   const allMenuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -53,11 +47,7 @@ const Sidebar = () => {
   const menuItems = allMenuItems.filter(item => {
     if (!user) return false;
     if (user.role === 'main_team') return true;
-
-    // For non-main team
     if (item.path === '/dashboard') return false;
-
-    // Check departments
     let userDeps = [];
     if (user.departments) {
       try {
@@ -67,13 +57,8 @@ const Sidebar = () => {
         userDeps = user.departments.split(',').map(d => d.trim());
       }
     }
-
-    // Normalize to lowercase
     userDeps = userDeps.map(d => d.toLowerCase());
-
-    // Only show if user has this department
     if (item.key && userDeps.includes(item.key)) return true;
-
     return false;
   });
 
@@ -81,80 +66,105 @@ const Sidebar = () => {
     { name: "Members", icon: Users, path: "/members" },
   ].filter(item => {
     if (!user) return false;
-    // Only show Members to main_team
     if (item.path === '/members' && user.role !== 'main_team') return false;
     return true;
   });
 
+  // Determine Sidebar Classes
+  // Desktop: .sidebar + (isCollapsed ? .collapsed : '')
+  // Mobile: .sidebar + .mobile + (isMobileOpen ? .open : '')
+  const sidebarClasses = `
+    ${styles.sidebar} 
+    ${isMobile ? styles.mobile : ''} 
+    ${isMobile && isMobileOpen ? styles.open : ''} 
+    ${!isMobile && isCollapsed ? styles.collapsed : ''}
+  `;
+
   return (
-    <aside className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ''}`}>
-      <div className={styles.logoContainer}>
-        <div className={styles.logoIconWrapper}>
-          <Logo size={40} />
-        </div>
-        <span className={styles.logoText}>MEDIA</span>
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isMobile && isMobileOpen && (
+        <div className={styles.overlay} onClick={closeMobileSidebar} />
+      )}
 
-      <div className={styles.menuSection}>
-        <h3 className={styles.menuTitle}>MENU</h3>
-        <nav className={styles.nav}>
-          {menuItems.map((item) => {
-            const isActive = pathname === item.path;
-            const Icon = item.icon;
-            return (
-              <Link
-                href={item.path}
-                key={item.name}
-                className={`${styles.navItem} ${isActive ? styles.active : ""}`}
-                title={isCollapsed ? item.name : ''}
-              >
-                <div className={styles.iconWrapper}><Icon size={20} /></div>
-                <span className={styles.navText}>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-
-      <div className={styles.menuSection}>
-        <h3 className={styles.menuTitle}>GENERAL</h3>
-        <nav className={styles.nav}>
-          {generalItems.map((item) => {
-            const isActive = pathname === item.path;
-            const Icon = item.icon;
-            return (
-              <Link
-                href={item.path}
-                key={item.name}
-                className={`${styles.navItem} ${isActive ? styles.active : ""}`}
-                title={isCollapsed ? item.name : ''}
-              >
-                <div className={styles.iconWrapper}><Icon size={20} /></div>
-                <span className={styles.navText}>{item.name}</span>
-              </Link>
-            );
-          })}
-
-          {/* Logout Row with Toggle Button */}
-          <div className={styles.logoutRow}>
-            <button
-              className={`${styles.navItem} ${styles.logoutBtn}`}
-              onClick={handleLogout}
-              title={isCollapsed ? "Logout" : ''}
-            >
-              <div className={styles.iconWrapper}><LogOut size={20} /></div>
-              <span className={styles.navText}>Logout</span>
-            </button>
-
-            {/* The Toggle Symbol */}
-            <button className={styles.toggleBtn} onClick={toggleSidebar} title="Toggle Sidebar">
-              {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-            </button>
+      <aside className={sidebarClasses}>
+        <div className={styles.logoContainer}>
+          {/* On mobile, show close button instead of simple logo sometimes? Or simple layout */}
+          <div className={styles.logoIconWrapper}>
+            <Logo size={40} />
           </div>
+          {/* Show text if NOT collapsed OR if is Mobile */}
+          {(!isCollapsed || isMobile) && <span className={styles.logoText}>MEDIA</span>}
 
-        </nav>
-      </div>
-    </aside>
+          {/* Mobile Close Button */}
+          {isMobile && (
+            <button onClick={closeMobileSidebar} className={styles.mobileCloseBtn}>
+              <X size={24} />
+            </button>
+          )}
+        </div>
+
+        <div className={styles.menuSection}>
+          <h3 className={styles.menuTitle}>MENU</h3>
+          <nav className={styles.nav}>
+            {menuItems.map((item) => {
+              const isActive = pathname === item.path;
+              const Icon = item.icon;
+              return (
+                <Link
+                  href={item.path}
+                  key={item.name}
+                  className={`${styles.navItem} ${isActive ? styles.active : ""}`}
+                  title={isCollapsed && !isMobile ? item.name : ''}
+                >
+                  <div className={styles.iconWrapper}><Icon size={20} /></div>
+                  <span className={styles.navText}>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className={styles.menuSection}>
+          <h3 className={styles.menuTitle}>GENERAL</h3>
+          <nav className={styles.nav}>
+            {generalItems.map((item) => {
+              const isActive = pathname === item.path;
+              const Icon = item.icon;
+              return (
+                <Link
+                  href={item.path}
+                  key={item.name}
+                  className={`${styles.navItem} ${isActive ? styles.active : ""}`}
+                  title={isCollapsed && !isMobile ? item.name : ''}
+                >
+                  <div className={styles.iconWrapper}><Icon size={20} /></div>
+                  <span className={styles.navText}>{item.name}</span>
+                </Link>
+              );
+            })}
+
+            <div className={styles.logoutRow}>
+              <button
+                className={`${styles.navItem} ${styles.logoutBtn}`}
+                onClick={handleLogout}
+                title={isCollapsed && !isMobile ? "Logout" : ''}
+              >
+                <div className={styles.iconWrapper}><LogOut size={20} /></div>
+                <span className={styles.navText}>Logout</span>
+              </button>
+
+              {/* Desktop Toggle Button - Hidden on Mobile */}
+              {!isMobile && (
+                <button className={styles.toggleBtn} onClick={toggleCollapse} title="Toggle Sidebar">
+                  {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                </button>
+              )}
+            </div>
+          </nav>
+        </div>
+      </aside>
+    </>
   );
 };
 

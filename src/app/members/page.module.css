@@ -328,3 +328,96 @@
         transform: rotate(360deg);
     }
 }
+
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .tableContainer {
+        background: transparent;
+        border: none;
+        overflow: visible;
+    }
+
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        /* Reset min-width to prevent overflow */
+        box-sizing: border-box;
+        /* Ensure padding doesn't increase width */
+    }
+
+    .table thead {
+        display: none;
+    }
+
+    .table tr {
+        background-color: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        margin-bottom: 16px;
+        padding: 16px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .table td {
+        padding: 0;
+        border: none;
+        text-align: left;
+    }
+
+    /* User Info (Avatar + Name) */
+    .table td:first-child {
+        margin-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+    }
+
+    /* Action Button (Absolute Top Right) */
+    .table td:last-child {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: auto;
+    }
+
+    /* Email - Make it look like a secondary line */
+    .email {
+        font-size: 13px;
+        margin-bottom: 4px;
+        order: 2;
+        /* Adjust order if needed, but flex handles blocks */
+    }
+
+    .teamsCell {
+        flex-wrap: wrap;
+        margin-top: 8px;
+    }
+
+    /* Labels for Role/Status to make it clear */
+    .table td:nth-child(2)::before {
+        content: "Role: ";
+        color: var(--text-secondary);
+        font-size: 12px;
+        margin-right: 4px;
+    }
+
+    .table td:nth-child(3)::before {
+        content: "Status: ";
+        color: var(--text-secondary);
+        font-size: 12px;
+        margin-right: 4px;
+    }
+
+    .statusBadge {
+        margin-top: 4px;
+    }
+}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import { db, schema } from "@/db";
 import { ne, eq } from "drizzle-orm";
+import styles from "@/styles/SharedLayout.module.css";
 import MembersTable from "./MembersTable";
 
 export default async function MembersPage() {
@@ -49,10 +50,10 @@ export default async function MembersPage() {
         .map(task => task.assignedTo);
 
     return (
-        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className={styles.pageContainer}>
             <Header title="Members" />
 
-            <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
+            <div className={styles.contentContainer}>
                 <MembersTable
                     initialUsers={sortedUsers}
                     workingUserIds={workingUserIds}

@@ -72,3 +72,14 @@
 .primary .subtitle {
     color: rgba(255, 255, 255, 0.8);
 }
+
+@media (max-width: 768px) {
+    .card {
+        padding: 16px;
+        min-height: 120px;
+    }
+
+    .count {
+        font-size: 32px;
+    }
+}

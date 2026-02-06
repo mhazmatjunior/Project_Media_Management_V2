@@ -6,6 +6,7 @@ import { isAuthenticated } from '@/lib/auth';
 import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
+import styles from "@/styles/SharedLayout.module.css";
 
 export default function GraphicsPage() {
     const router = useRouter();
@@ -168,18 +169,18 @@ export default function GraphicsPage() {
     }
 
     return (
-        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div className={styles.pageContainer}>
             <Header title="Graphics Dep" />
-            <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
-                <div style={{ marginBottom: '24px', padding: '24px', background: 'var(--surface-color)', borderRadius: 'var(--border-radius-md)' }}>
+            <div className={styles.contentContainer}>
+                <div className={styles.pageHeader}>
                     <h2>Graphics Team</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>
+                    <p className={styles.pageDescription}>
                         Design assets and video editing.
                     </p>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div className={styles.gridContainer}>
+                    <div className={styles.taskListColumn}>
                         <ProjectList
                             title={userRole === 'member' ? "Assigned Tasks" : "Active Tasks"}
                             projects={graphicsVideos}
