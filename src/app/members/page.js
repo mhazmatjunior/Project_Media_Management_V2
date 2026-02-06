@@ -31,6 +31,19 @@ export default async function MembersPage() {
         where: ne(schema.users.role, 'main_team'),
     });
 
+    // Fetch active assignments (status != 'ended')
+    const activeTasks = await db.query.videos.findMany({
+        where: ne(schema.videos.status, 'ended'),
+        columns: { assignedTo: true }
+    });
+
+    // Create a set of user IDs who are currently assigned to active tasks
+    const workingUserIds = new Set(
+        activeTasks
+            .filter(task => task.assignedTo !== null)
+            .map(task => task.assignedTo)
+    );
+
     // Sort: Team Leads first, then others
     const sortedUsers = users.sort((a, b) => {
         if (a.role === 'team_lead' && b.role !== 'team_lead') return -1;
@@ -74,6 +87,8 @@ export default async function MembersPage() {
                                 if (typeof teams === 'string') teams = [teams];
                                 if (!Array.isArray(teams)) teams = [];
 
+                                const isWorking = workingUserIds.has(member.id);
+
                                 return (
                                     <tr key={member.id}>
                                         <td>
@@ -85,7 +100,6 @@ export default async function MembersPage() {
                                                 />
                                                 <div className={styles.userInfo}>
                                                     <span className={styles.userName}>{member.name}</span>
-                                                    {/* <span className={styles.userHandle}>@{member.name.split(' ')[0].toLowerCase()}</span> */}
                                                 </div>
                                             </div>
                                         </td>
@@ -93,9 +107,9 @@ export default async function MembersPage() {
                                             <span className={styles.roleText}>{formatRole(member.role)}</span>
                                         </td>
                                         <td>
-                                            <span className={`${styles.statusBadge} ${styles.statusActive}`}>
+                                            <span className={`${styles.statusBadge} ${isWorking ? styles.statusWorking : styles.statusActive}`}>
                                                 <span className={styles.dot}></span>
-                                                Active
+                                                {isWorking ? 'Active' : 'Idle'}
                                             </span>
                                         </td>
                                         <td className={styles.email}>{member.email}</td>

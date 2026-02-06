@@ -102,6 +102,16 @@
     background-color: #fff;
 }
 
+.statusWorking .dot {
+    background-color: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
+}
+
+.statusWorking {
+    color: #00ff88;
+    border-color: rgba(0, 255, 136, 0.3);
+}
+
 .statusOffline .dot {
     background-color: #444;
 }
