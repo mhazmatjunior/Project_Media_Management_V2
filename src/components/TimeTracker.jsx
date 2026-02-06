@@ -58,16 +58,7 @@ const TimeTracker = ({ selectedTask }) => {
             </div>
 
             <div className={styles.controls}>
-                {selectedTask ? (
-                    <>
-                        <button className={styles.playButton}>
-                            <Play size={20} fill="currentColor" />
-                        </button>
-                        <button className={styles.recordButton}>
-                            <div className={styles.redDot} />
-                        </button>
-                    </>
-                ) : null}
+                {/* buttons removed */}
             </div>
 
             {/* Abstract background shapes */}

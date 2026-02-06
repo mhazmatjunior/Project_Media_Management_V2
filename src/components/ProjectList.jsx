@@ -227,7 +227,7 @@ const ProjectList = ({
                     ))
                 ) : (
                     <div style={{ padding: '20px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-                        No videos found.
+                        No tasks found.
                     </div>
                 )}
             </div>
