@@ -13,6 +13,7 @@ export default function ResearchPage() {
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
     const [members, setMembers] = useState([]);
+    const [selectedTask, setSelectedTask] = useState(null);
 
     // Check authentication
     // Check authentication and permissions
@@ -132,6 +133,14 @@ export default function ResearchPage() {
         }
     };
 
+    const handleTaskSelect = (project) => {
+        if (selectedTask?.id === project.id) {
+            setSelectedTask(null);
+        } else {
+            setSelectedTask(project);
+        }
+    };
+
     // Don't render until auth is verified
     if (!authChecked) {
         return null;
@@ -152,11 +161,14 @@ export default function ResearchPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <ProjectList
                             title="Active Tasks"
-                            projects={loading ? [] : researchVideos}
+                            projects={researchVideos}
+                            loading={loading}
                             showForwardButton={true}
                             onForwardClick={handleForward}
                             members={members}
                             onAssign={handleAssign}
+                            onSelect={handleTaskSelect}
+                            selectedTaskId={selectedTask?.id}
                         />
                         <ProjectList
                             title="Completed Tasks"
@@ -164,7 +176,7 @@ export default function ResearchPage() {
                             showDepartmentBadge={true}
                         />
                     </div>
-                    <TimeTracker />
+                    <TimeTracker selectedTask={selectedTask} />
                 </div>
             </div>
         </div>

@@ -18,6 +18,7 @@ export async function PUT(request, { params }) {
         }
         if (body.currentDepartment !== undefined) {
             updateData.currentDepartment = body.currentDepartment;
+            updateData.departmentEnteredAt = new Date();
         }
         if (body.assignedTo !== undefined) {
             // Handle "0", "", or valid number string to integer or null
@@ -51,6 +52,8 @@ export async function PUT(request, { params }) {
             description: updatedVideo.description,
             status: mapDbStatusToApp(updatedVideo.status),
             date: formatDate(updatedVideo.createdAt),
+            departmentEnteredAt: updatedVideo.departmentEnteredAt,
+            currentDepartment: updatedVideo.currentDepartment,
         };
 
         return NextResponse.json(mappedVideo);

@@ -55,6 +55,25 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    padding: 12px;
+    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    position: relative;
+}
+
+.item:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.selected {
+    background: linear-gradient(90deg, rgba(211, 47, 47, 0.15) 0%, rgba(211, 47, 47, 0.05) 100%);
+    border-left: 3px solid var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.selected .name {
+    color: var(--primary-color);
 }
 
 .icon {
@@ -276,6 +295,32 @@
     transform: translateY(-1px);
 }
 
-.finishButton:active {
-    transform: translateY(0);
+/* Skeleton Loading */
+.skeletonItem {
+    pointer-events: none;
+    border: 1px solid transparent;
+}
+
+.skeletonPulse {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeletonText {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
 }

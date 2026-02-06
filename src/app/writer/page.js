@@ -13,6 +13,7 @@ export default function WriterPage() {
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
     const [members, setMembers] = useState([]);
+    const [selectedTask, setSelectedTask] = useState(null);
 
     // Check authentication
     // Check authentication and permissions
@@ -128,6 +129,14 @@ export default function WriterPage() {
         }
     };
 
+    const handleTaskSelect = (project) => {
+        if (selectedTask?.id === project.id) {
+            setSelectedTask(null);
+        } else {
+            setSelectedTask(project);
+        }
+    };
+
     if (!authChecked) {
         return null;
     }
@@ -147,11 +156,14 @@ export default function WriterPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <ProjectList
                             title="Active Tasks"
-                            projects={loading ? [] : writerVideos}
+                            projects={writerVideos}
+                            loading={loading}
                             showForwardButton={true}
                             onForwardClick={handleForward}
                             members={members}
                             onAssign={handleAssign}
+                            onSelect={handleTaskSelect}
+                            selectedTaskId={selectedTask?.id}
                         />
                         <ProjectList
                             title="Completed Tasks"
@@ -159,7 +171,7 @@ export default function WriterPage() {
                             showDepartmentBadge={true}
                         />
                     </div>
-                    <TimeTracker />
+                    <TimeTracker selectedTask={selectedTask} />
                 </div>
             </div>
         </div>

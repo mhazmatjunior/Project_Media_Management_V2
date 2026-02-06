@@ -29,6 +29,8 @@ export async function GET() {
             duration: video.duration,
             assignedTo: video.assignedTo,
             assigneeName: video.assigneeName,
+            departmentEnteredAt: video.departmentEnteredAt,
+            departmentTimestamp: video.createdAt, // Fallback
         }));
 
         return NextResponse.json(mappedVideos);

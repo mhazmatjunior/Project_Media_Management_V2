@@ -27,6 +27,7 @@ export const videos = pgTable('videos', {
     userId: integer('user_id').references(() => users.id),
     assignedTo: integer('assigned_to').references(() => users.id),
     isPublished: boolean('is_published').default(false),
+    departmentEnteredAt: timestamp('department_entered_at').defaultNow(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

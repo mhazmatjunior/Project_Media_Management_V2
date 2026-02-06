@@ -127,7 +127,10 @@ const ProjectList = ({
     showDepartmentBadge = false,
     members = [],
     onAssign,
-    title = "Videos List"
+    title = "Videos List",
+    onSelect,
+    selectedTaskId,
+    loading = false
 }) => {
     return (
         <div className={styles.card}>
@@ -142,9 +145,25 @@ const ProjectList = ({
             </div>
 
             <div className={styles.list}>
-                {projects.length > 0 ? (
+                {loading ? (
+                    // Loading Skeletons
+                    Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className={`${styles.item} ${styles.skeletonItem}`}>
+                            <div className={`${styles.icon} ${styles.skeletonPulse}`} style={{ backgroundColor: 'var(--border-color)' }}></div>
+                            <div className={styles.details}>
+                                <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: '60%', height: '14px', marginBottom: '8px' }}></div>
+                                <div className={`${styles.skeletonText} ${styles.skeletonPulse}`} style={{ width: '40%', height: '12px' }}></div>
+                            </div>
+                        </div>
+                    ))
+                ) : projects.length > 0 ? (
                     projects.map((project, index) => (
-                        <div key={index} className={styles.item}>
+                        <div
+                            key={index}
+                            className={`${styles.item} ${selectedTaskId === project.id ? styles.selected : ''}`}
+                            onClick={() => onSelect && onSelect(project)}
+                            style={{ cursor: onSelect ? 'pointer' : 'default' }}
+                        >
                             <div className={styles.icon} style={{ color: project.color || 'var(--primary-color)' }}>
                                 ◆
                             </div>

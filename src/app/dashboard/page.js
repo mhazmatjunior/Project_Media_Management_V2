@@ -179,7 +179,7 @@ export default function DashboardPage() {
           <StatCard
             title="Total Videos"
             count={totalCount}
-            subtitle="All projects"
+            subtitle="All Videos"
             variant={selectedStat === 'Total Videos' ? 'primary' : 'default'}
             onClick={() => setSelectedStat("Total Videos")}
           />
