@@ -10,10 +10,12 @@ import TimeTracker from "@/components/TimeTracker";
 export default function GraphicsPage() {
     const router = useRouter();
     const [graphicsVideos, setGraphicsVideos] = useState([]);
+    const [completedGraphicsVideos, setCompletedGraphicsVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
     const [members, setMembers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
     // Check authentication
     // Check authentication and permissions
@@ -23,6 +25,7 @@ export default function GraphicsPage() {
         } else {
             const session = JSON.parse(localStorage.getItem('user_session'));
             if (session) {
+                setUserRole(session.role);
                 let hasAccess = false;
                 if (session.role === 'main_team') hasAccess = true;
                 else {
@@ -37,7 +40,6 @@ export default function GraphicsPage() {
                     }
                     // Normalize
                     userDeps = userDeps.map(d => d.toLowerCase());
-
                     if (userDeps.includes('graphics')) hasAccess = true;
                 }
 
@@ -73,8 +75,29 @@ export default function GraphicsPage() {
             const response = await fetch('/api/videos');
             const data = await response.json();
 
-            const graphics = data.filter(v => v.status === 'running' && v.currentDepartment === 'graphics');
+            const session = JSON.parse(localStorage.getItem('user_session'));
+            const isMember = session?.role === 'member';
+            const userId = session?.id;
+
+            let graphics = data.filter(v => v.status === 'running' && v.currentDepartment === 'graphics');
+
+            if (isMember) {
+                graphics = graphics.filter(v => v.assignedTo === userId);
+            }
+
+            if (isMember) {
+                graphics = graphics.filter(v => v.assignedTo === userId);
+            }
+
             setGraphicsVideos(graphics);
+
+            // Fetch completed/review tasks for this department
+            const completed = data.filter(v =>
+                v.currentDepartment === 'graphics' &&
+                v.status === 'department_completed'
+            );
+            setCompletedGraphicsVideos(completed);
+
         } catch (error) {
             console.error('Error fetching graphics videos:', error);
         } finally {
@@ -155,20 +178,38 @@ export default function GraphicsPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <ProjectList
-                            title="Active Tasks"
+                            title={userRole === 'member' ? "Assigned Tasks" : "Active Tasks"}
                             projects={graphicsVideos}
                             loading={loading}
-                            showFinishButton={true}
-                            onFinishClick={handleFinish}
+                            showFinishButton={userRole === 'member'} // Only member marks as Done here
+                            onFinishClick={async (id) => {
+                                // Member: Mark as Done (department_completed)
+                                try {
+                                    const response = await fetch(`/api/videos/${id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'department_completed' }),
+                                    });
+                                    if (!response.ok) throw new Error('Failed to mark as done');
+                                    await fetchGraphicsVideos();
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    alert('Failed to mark as done');
+                                }
+                            }}
                             members={members}
-                            onAssign={handleAssign}
+                            onAssign={userRole === 'member' ? null : handleAssign}
                             onSelect={handleTaskSelect}
                             selectedTaskId={selectedTask?.id}
                         />
                         <ProjectList
                             title="Completed Tasks"
-                            projects={[]}
-                            showDepartmentBadge={true}
+                            projects={loading ? [] : completedGraphicsVideos}
+                            showDepartmentBadge={false}
+                            showFinishButton={userRole !== 'member'} // Lead can Finish (End) the video
+                            onFinishClick={handleFinish}
+                            onSelect={handleTaskSelect}
+                            selectedTaskId={selectedTask?.id}
                         />
                     </div>
                     <TimeTracker selectedTask={selectedTask} />

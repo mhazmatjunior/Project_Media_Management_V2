@@ -90,6 +90,7 @@ function mapAppStatusToDb(appStatus) {
     const statusMap = {
         'pending': 'pending',
         'running': 'in_progress',
+        'department_completed': 'department_completed',
         'ended': 'completed',
     };
     return statusMap[appStatus] || 'pending';
@@ -99,6 +100,7 @@ function mapDbStatusToApp(dbStatus) {
     const statusMap = {
         'pending': 'pending',
         'in_progress': 'running',
+        'department_completed': 'department_completed',
         'completed': 'ended',
     };
     return statusMap[dbStatus] || 'pending';

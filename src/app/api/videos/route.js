@@ -95,6 +95,7 @@ function mapDbStatusToApp(dbStatus) {
     const statusMap = {
         'pending': 'pending',
         'in_progress': 'running',
+        'department_completed': 'department_completed',
         'completed': 'ended',
         'archived': 'archived',
     };
@@ -110,6 +111,7 @@ function getColorForStatus(status) {
     const colors = {
         'pending': '#6366F1',
         'in_progress': '#EF4444',
+        'department_completed': '#F59E0B',
         'completed': '#10B981',
     };
     return colors[status] || '#6366F1';

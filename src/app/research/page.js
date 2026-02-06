@@ -10,10 +10,12 @@ import TimeTracker from "@/components/TimeTracker";
 export default function ResearchPage() {
     const router = useRouter();
     const [researchVideos, setResearchVideos] = useState([]);
+    const [completedResearchVideos, setCompletedResearchVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
     const [members, setMembers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
     // Check authentication
     // Check authentication and permissions
@@ -23,6 +25,7 @@ export default function ResearchPage() {
         } else {
             const session = JSON.parse(localStorage.getItem('user_session'));
             if (session) {
+                setUserRole(session.role);
                 let hasAccess = false;
                 if (session.role === 'main_team') hasAccess = true;
                 else {
@@ -75,8 +78,29 @@ export default function ResearchPage() {
             const data = await response.json();
 
             // Filter videos that are running and in research department
-            const research = data.filter(v => v.status === 'running' && v.currentDepartment === 'research');
+            let research = data.filter(v => v.status === 'running' && v.currentDepartment === 'research');
+
+            const session = JSON.parse(localStorage.getItem('user_session'));
+            const isMember = session?.role === 'member';
+            const userId = session?.id;
+
+            if (isMember) {
+                research = research.filter(v => v.assignedTo === userId);
+            }
+
+            if (isMember) {
+                research = research.filter(v => v.assignedTo === userId);
+            }
+
             setResearchVideos(research);
+
+            // Fetch completed/review tasks for this department
+            const completed = data.filter(v =>
+                v.currentDepartment === 'research' &&
+                v.status === 'department_completed'
+            );
+            setCompletedResearchVideos(completed);
+
         } catch (error) {
             console.error('Error fetching research videos:', error);
         } finally {
@@ -117,6 +141,7 @@ export default function ResearchPage() {
                 },
                 body: JSON.stringify({
                     currentDepartment: 'writer',
+                    status: 'running', // Reset to running for next department
                     assignedTo: null, // Reset assignment when forwarding
                 }),
             });
@@ -160,20 +185,39 @@ export default function ResearchPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <ProjectList
-                            title="Active Tasks"
+                            title={userRole === 'member' ? "Assigned Tasks" : "Active Tasks"}
                             projects={researchVideos}
                             loading={loading}
-                            showForwardButton={true}
-                            onForwardClick={handleForward}
+                            showForwardButton={false}
+                            showFinishButton={userRole === 'member'}
+                            onFinishClick={async (id) => {
+                                // Mark as Done (department_completed)
+                                try {
+                                    const response = await fetch(`/api/videos/${id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'department_completed' }),
+                                    });
+                                    if (!response.ok) throw new Error('Failed to mark as done');
+                                    await fetchResearchVideos();
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    alert('Failed to mark as done');
+                                }
+                            }}
                             members={members}
-                            onAssign={handleAssign}
+                            onAssign={userRole === 'member' ? null : handleAssign}
                             onSelect={handleTaskSelect}
                             selectedTaskId={selectedTask?.id}
                         />
                         <ProjectList
                             title="Completed Tasks"
-                            projects={[]}
-                            showDepartmentBadge={true}
+                            projects={loading ? [] : completedResearchVideos}
+                            showDepartmentBadge={false}
+                            showForwardButton={userRole !== 'member'}
+                            onForwardClick={handleForward}
+                            onSelect={handleTaskSelect}
+                            selectedTaskId={selectedTask?.id}
                         />
                     </div>
                     <TimeTracker selectedTask={selectedTask} />

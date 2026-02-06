@@ -10,10 +10,12 @@ import TimeTracker from "@/components/TimeTracker";
 export default function SpeakerPage() {
     const router = useRouter();
     const [speakerVideos, setSpeakerVideos] = useState([]);
+    const [completedSpeakerVideos, setCompletedSpeakerVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
     const [members, setMembers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
     // Check authentication
     // Check authentication and permissions
@@ -23,6 +25,7 @@ export default function SpeakerPage() {
         } else {
             const session = JSON.parse(localStorage.getItem('user_session'));
             if (session) {
+                setUserRole(session.role);
                 let hasAccess = false;
                 if (session.role === 'main_team') hasAccess = true;
                 else {
@@ -73,8 +76,29 @@ export default function SpeakerPage() {
             const response = await fetch('/api/videos');
             const data = await response.json();
 
-            const speaker = data.filter(v => v.status === 'running' && v.currentDepartment === 'speaker');
+            const session = JSON.parse(localStorage.getItem('user_session'));
+            const isMember = session?.role === 'member';
+            const userId = session?.id;
+
+            let speaker = data.filter(v => v.status === 'running' && v.currentDepartment === 'speaker');
+
+            if (isMember) {
+                speaker = speaker.filter(v => v.assignedTo === userId);
+            }
+
+            if (isMember) {
+                speaker = speaker.filter(v => v.assignedTo === userId);
+            }
+
             setSpeakerVideos(speaker);
+
+            // Fetch completed/review tasks for this department
+            const completed = data.filter(v =>
+                v.currentDepartment === 'speaker' &&
+                v.status === 'department_completed'
+            );
+            setCompletedSpeakerVideos(completed);
+
         } catch (error) {
             console.error('Error fetching speaker videos:', error);
         } finally {
@@ -114,6 +138,7 @@ export default function SpeakerPage() {
                 },
                 body: JSON.stringify({
                     currentDepartment: 'graphics',
+                    status: 'running', // Reset to running for next department
                     assignedTo: null,
                 }),
             });
@@ -155,20 +180,39 @@ export default function SpeakerPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <ProjectList
-                            title="Active Tasks"
+                            title={userRole === 'member' ? "Assigned Tasks" : "Active Tasks"}
                             projects={speakerVideos}
                             loading={loading}
-                            showForwardButton={true}
-                            onForwardClick={handleForward}
+                            showForwardButton={false}
+                            showFinishButton={userRole === 'member'}
+                            onFinishClick={async (id) => {
+                                // Mark as Done (department_completed)
+                                try {
+                                    const response = await fetch(`/api/videos/${id}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'department_completed' }),
+                                    });
+                                    if (!response.ok) throw new Error('Failed to mark as done');
+                                    await fetchSpeakerVideos();
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    alert('Failed to mark as done');
+                                }
+                            }}
                             members={members}
-                            onAssign={handleAssign}
+                            onAssign={userRole === 'member' ? null : handleAssign}
                             onSelect={handleTaskSelect}
                             selectedTaskId={selectedTask?.id}
                         />
                         <ProjectList
                             title="Completed Tasks"
-                            projects={[]}
-                            showDepartmentBadge={true}
+                            projects={loading ? [] : completedSpeakerVideos}
+                            showDepartmentBadge={false}
+                            showForwardButton={userRole !== 'member'}
+                            onForwardClick={handleForward}
+                            onSelect={handleTaskSelect}
+                            selectedTaskId={selectedTask?.id}
                         />
                     </div>
                     <TimeTracker selectedTask={selectedTask} />
