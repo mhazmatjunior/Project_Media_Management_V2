@@ -205,6 +205,7 @@ export default function ResearchPage() {
                                     alert('Failed to mark as done');
                                 }
                             }}
+                            finishButtonText="Done"
                             members={members}
                             onAssign={userRole === 'member' ? null : handleAssign}
                             onSelect={handleTaskSelect}

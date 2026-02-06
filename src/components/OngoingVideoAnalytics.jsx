@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ArrowLeft } from "lucide-react";
 import ProgressChart from "./ProgressChart";
@@ -9,11 +9,33 @@ import styles from "./OngoingVideoAnalytics.module.css";
 
 const OngoingVideoAnalytics = ({ videos = [] }) => {
     const [selectedVideo, setSelectedVideo] = useState(null);
+    const [teamMembers, setTeamMembers] = useState([]);
 
     // Use passed videos prop (already filtered for running videos)
     const runningVideos = videos;
 
-    // Map videos to chart data, keeping the full video object
+    // Fetch history when selectedVideo changes
+    useEffect(() => {
+        if (selectedVideo) {
+            fetch(`/api/videos/${selectedVideo.id}/history`)
+                .then(res => res.json())
+                .then(data => {
+                    const members = [...data];
+                    // Add current assignee if exists
+                    if (selectedVideo.assignedTo && selectedVideo.assigneeName) {
+                        members.push({
+                            name: selectedVideo.assigneeName,
+                            role: `Working on ${selectedVideo.currentDepartment ? selectedVideo.currentDepartment.charAt(0).toUpperCase() + selectedVideo.currentDepartment.slice(1) : 'Task'}`,
+                            status: 'In Progress',
+                            img: `https://i.pravatar.cc/150?u=${selectedVideo.assigneeName}`
+                        });
+                    }
+                    setTeamMembers(members);
+                })
+                .catch(err => console.error('Error fetching history:', err));
+        }
+    }, [selectedVideo]);
+
     const chartData = runningVideos.map(v => ({
         name: v.name,
         value: v.value || 50, // Default progress for running videos
@@ -51,7 +73,7 @@ const OngoingVideoAnalytics = ({ videos = [] }) => {
                         </div>
                         <div className={styles.separator} />
                         <div className={styles.half}>
-                            <TeamList embedded={true} />
+                            <TeamList embedded={true} members={teamMembers} />
                         </div>
                     </div>
                 </div>

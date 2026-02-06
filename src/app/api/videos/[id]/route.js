@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db, schema } from '@/db';
 import { eq } from 'drizzle-orm';
+import { cookies } from 'next/headers';
 
 // PUT /api/videos/[id] - Update video
 export async function PUT(request, { params }) {
@@ -8,8 +9,22 @@ export async function PUT(request, { params }) {
         const { id } = await params;
         const body = await request.json();
 
+        // Get user from session for history tracking
+        const cookieStore = await cookies();
+        const session = cookieStore.get('user_session');
+        let currentUserId = null;
+        if (session) {
+            try {
+                const user = JSON.parse(session.value);
+                currentUserId = user.id;
+            } catch (e) {
+                console.error('Error parsing session:', e);
+            }
+        }
+
         // Map app status to DB status if provided
         const updateData = {};
+        const isCompletingDepartment = body.status === 'department_completed';
 
         if (body.name) updateData.title = body.name;
         if (body.description) updateData.description = body.description;
@@ -43,6 +58,17 @@ export async function PUT(request, { params }) {
                 { error: 'Video not found' },
                 { status: 404 }
             );
+        }
+
+        // Log history if completing department
+        if (isCompletingDepartment && currentUserId) {
+            await db.insert(schema.videoHistory).values({
+                videoId: updatedVideo.id,
+                userId: currentUserId,
+                department: updatedVideo.currentDepartment,
+                action: 'completed',
+                timestamp: new Date(),
+            });
         }
 
         // Map back to app format

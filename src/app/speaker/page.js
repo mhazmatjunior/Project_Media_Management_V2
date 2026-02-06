@@ -200,6 +200,7 @@ export default function SpeakerPage() {
                                     alert('Failed to mark as done');
                                 }
                             }}
+                            finishButtonText="Done"
                             members={members}
                             onAssign={userRole === 'member' ? null : handleAssign}
                             onSelect={handleTaskSelect}

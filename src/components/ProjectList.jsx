@@ -130,7 +130,8 @@ const ProjectList = ({
     title = "Videos List",
     onSelect,
     selectedTaskId,
-    loading = false
+    loading = false,
+    finishButtonText = "Finish"
 }) => {
     return (
         <div className={styles.card}>
@@ -219,7 +220,7 @@ const ProjectList = ({
                                     title="Mark as finished"
                                 >
                                     <CheckCircle size={16} />
-                                    <span>Finish</span>
+                                    <span>{finishButtonText}</span>
                                 </button>
                             )}
                         </div>

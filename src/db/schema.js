@@ -42,3 +42,13 @@ export const projects = pgTable('projects', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Video History table for tracking team collaboration
+export const videoHistory = pgTable('video_history', {
+    id: serial('id').primaryKey(),
+    videoId: integer('video_id').references(() => videos.id).notNull(),
+    userId: integer('user_id').references(() => users.id).notNull(),
+    department: text('department').notNull(), // 'research', 'writer', 'speaker', 'graphics'
+    action: text('action').notNull(), // 'completed'
+    timestamp: timestamp('timestamp').defaultNow().notNull(),
+});
