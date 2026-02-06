@@ -28,7 +28,12 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        throw new Error("Server returned non-JSON response. Check server logs.");
+      }
 
       if (!response.ok) {
         setError(data.error || "Invalid email or password");

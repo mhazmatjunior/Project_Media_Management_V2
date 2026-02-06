@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 export default function LayoutWrapper({ children }) {
     const pathname = usePathname();
@@ -23,6 +24,7 @@ export default function LayoutWrapper({ children }) {
             }}>
                 {children}
             </main>
+            <ChatWidget />
         </div>
     );
 }

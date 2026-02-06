@@ -12,15 +12,18 @@ export const metadata = {
 import StoreProvider from "./StoreProvider";
 
 import LayoutWrapper from "@/components/LayoutWrapper";
+import { ChatProvider } from "@/context/ChatContext";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <StoreProvider>
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
+          <ChatProvider>
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+          </ChatProvider>
         </StoreProvider>
       </body>
     </html>

@@ -1,6 +1,8 @@
 import { pgTable, text, serial, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+// 1. Tables Definitions
+
 // Users table
 export const users = pgTable('users', {
     id: serial('id').primaryKey(),
@@ -34,7 +36,7 @@ export const videos = pgTable('videos', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Video History table for tracking team collaboration
+// Video History table
 export const videoHistory = pgTable('video_history', {
     id: serial('id').primaryKey(),
     videoId: integer('video_id').references(() => videos.id).notNull(),
@@ -55,11 +57,36 @@ export const projects = pgTable('projects', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Relations
+// Reminders table
+export const reminders = pgTable('reminders', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    datetime: timestamp('datetime').notNull(),
+    audienceType: text('audience_type').notNull(), // 'all', 'leads', 'members', 'specific'
+    targetUsers: text('target_users'), // JSON string of user IDs for specific targeting
+    createdBy: integer('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Messages table
+export const messages = pgTable('messages', {
+    id: serial('id').primaryKey(),
+    content: text('content').notNull(),
+    senderId: integer('sender_id').references(() => users.id).notNull(),
+    receiverId: integer('receiver_id').references(() => users.id), // Nullable for group messages
+    channel: text('channel'), // 'main', 'research', 'writer', 'speaker', 'graphic' or null for DM
+    isRead: boolean('is_read').default(false),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// 2. Relations Definitions
+
 export const usersRelations = relations(users, ({ many }) => ({
     sessions: many(videos, { relationName: 'creator' }),
     assignments: many(videos, { relationName: 'assignee' }),
     history: many(videoHistory),
+    sentMessages: many(messages, { relationName: 'sender' }),
+    receivedMessages: many(messages, { relationName: 'receiver' }),
 }));
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
@@ -87,13 +114,15 @@ export const videoHistoryRelations = relations(videoHistory, ({ one }) => ({
     }),
 }));
 
-// Reminders table
-export const reminders = pgTable('reminders', {
-    id: serial('id').primaryKey(),
-    title: text('title').notNull(),
-    datetime: timestamp('datetime').notNull(),
-    audienceType: text('audience_type').notNull(), // 'all', 'leads', 'members', 'specific'
-    targetUsers: text('target_users'), // JSON string of user IDs for specific targeting
-    createdBy: integer('created_by').references(() => users.id),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const messagesRelations = relations(messages, ({ one }) => ({
+    sender: one(users, {
+        fields: [messages.senderId],
+        references: [users.id],
+        relationName: 'sender',
+    }),
+    receiver: one(users, {
+        fields: [messages.receiverId],
+        references: [users.id],
+        relationName: 'receiver',
+    }),
+}));

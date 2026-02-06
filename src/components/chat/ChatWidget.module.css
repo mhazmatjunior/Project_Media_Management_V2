@@ -1,0 +1,206 @@
+.widgetContainer {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    height: 450px;
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    font-family: inherit;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.header {
+    padding: 12px 16px;
+    background-color: #1a1a1a;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.headerTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.backButton,
+.closeButton {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.backButton:hover,
+.closeButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-color);
+}
+
+/* List View */
+.listContainer {
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.sectionHeader {
+    color: var(--primary-color);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 12px 0 6px 8px;
+    font-weight: 700;
+}
+
+.listItem {
+    padding: 10px 12px;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-primary);
+    transition: background 0.2s;
+    position: relative;
+}
+
+.listItem:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.iconBg {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.unreadBadge {
+    width: 8px;
+    height: 8px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* Chat Window */
+.chatWindow {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.messagesList {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.messageBubble {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.me {
+    align-self: flex-end;
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom-right-radius: 2px;
+}
+
+.them {
+    align-self: flex-start;
+    background-color: #222;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-bottom-left-radius: 2px;
+}
+
+.bubbleContent {
+    display: flex;
+    flex-direction: column;
+}
+
+.senderName {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.inputArea {
+    padding: 12px;
+    background-color: var(--surface-color);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 8px;
+}
+
+.input {
+    flex: 1;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: var(--primary-color);
+}
+
+.sendButton {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sendButton:hover {
+    background-color: var(--primary-hover);
+}

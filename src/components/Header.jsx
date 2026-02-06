@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Mail, Bell, X } from "lucide-react";
 import { getSession } from "@/lib/auth";
+import { useChat } from "@/context/ChatContext";
 import styles from "./Header.module.css";
 
 const Header = ({ title }) => {
@@ -12,6 +13,7 @@ const Header = ({ title }) => {
     });
     const [notifications, setNotifications] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
+    const { toggleChat, totalUnread } = useChat();
 
     useEffect(() => {
         const sessionUser = getSession();
@@ -20,6 +22,12 @@ const Header = ({ title }) => {
             fetchNotifications();
         }
     }, []);
+
+    // ... (fetchNotifications, formatDate, etc - kept same)
+
+    // Wait, replace_file_content works on blocks. I need to be precise.
+    // I will replace the useChat destruction and the Mail button block.
+
 
     const fetchNotifications = async () => {
         try {
@@ -56,8 +64,9 @@ const Header = ({ title }) => {
             </div>
 
             <div className={styles.actions}>
-                <button className={styles.iconButton}>
+                <button className={styles.iconButton} onClick={toggleChat}>
                     <Mail size={20} />
+                    {totalUnread > 0 && <span className={styles.notificationDot} />}
                 </button>
 
                 <button
