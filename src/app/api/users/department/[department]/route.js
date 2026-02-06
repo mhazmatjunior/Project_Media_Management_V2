@@ -2,7 +2,7 @@
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { NextResponse } from 'next/server';
-import { like, or, eq, and } from 'drizzle-orm';
+import { like, or, eq, and, ne } from 'drizzle-orm';
 
 export async function GET(request, { params }) {
     try {
@@ -21,7 +21,8 @@ export async function GET(request, { params }) {
                         like(users.departments, `%${department}%`),
                         like(users.departments, `%${department.charAt(0).toUpperCase() + department.slice(1)}%`)
                     ),
-                    eq(users.role, 'member')
+                    eq(users.role, 'member'),
+                    ne(users.status, 'offline')
                 )
             );
 

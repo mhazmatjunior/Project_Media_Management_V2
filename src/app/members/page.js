@@ -1,10 +1,9 @@
-import { Trash2, Edit2 } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
-import styles from "./page.module.css";
 import { db, schema } from "@/db";
-import { ne } from "drizzle-orm";
+import { ne, eq } from "drizzle-orm";
+import MembersTable from "./MembersTable";
 
 export default async function MembersPage() {
     const cookieStore = await cookies();
@@ -31,19 +30,6 @@ export default async function MembersPage() {
         where: ne(schema.users.role, 'main_team'),
     });
 
-    // Fetch active assignments (status != 'ended')
-    const activeTasks = await db.query.videos.findMany({
-        where: ne(schema.videos.status, 'ended'),
-        columns: { assignedTo: true }
-    });
-
-    // Create a set of user IDs who are currently assigned to active tasks
-    const workingUserIds = new Set(
-        activeTasks
-            .filter(task => task.assignedTo !== null)
-            .map(task => task.assignedTo)
-    );
-
     // Sort: Team Leads first, then others
     const sortedUsers = users.sort((a, b) => {
         if (a.role === 'team_lead' && b.role !== 'team_lead') return -1;
@@ -51,89 +37,26 @@ export default async function MembersPage() {
         return 0;
     });
 
-    const formatRole = (role) => {
-        if (role === 'team_lead') return 'Team Lead';
-        if (role === 'member') return 'Member';
-        return role;
-    };
+    // Fetch active assignments (status == 'in_progress')
+    const activeTasks = await db.query.videos.findMany({
+        where: eq(schema.videos.status, 'in_progress'),
+        columns: { assignedTo: true }
+    });
+
+    // Create an array of user IDs who are currently assigned to active tasks
+    const workingUserIds = activeTasks
+        .filter(task => task.assignedTo !== null)
+        .map(task => task.assignedTo);
 
     return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Header title="Members" />
 
             <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
-                <div className={styles.tableContainer}>
-                    <table className={styles.table}>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Role</th>
-                                <th>Status ↓</th>
-                                <th>Email address</th>
-                                <th>Teams</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedUsers.map((member) => {
-                                let teams = [];
-                                try {
-                                    teams = member.departments ? JSON.parse(member.departments) : [];
-                                } catch (e) {
-                                    teams = [];
-                                }
-
-                                // Handle cases where departments might be just a string (though seed used JSON array)
-                                if (typeof teams === 'string') teams = [teams];
-                                if (!Array.isArray(teams)) teams = [];
-
-                                const isWorking = workingUserIds.has(member.id);
-
-                                return (
-                                    <tr key={member.id}>
-                                        <td>
-                                            <div className={styles.userCell}>
-                                                <img
-                                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&color=fff`}
-                                                    alt={member.name}
-                                                    className={styles.avatar}
-                                                />
-                                                <div className={styles.userInfo}>
-                                                    <span className={styles.userName}>{member.name}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className={styles.roleText}>{formatRole(member.role)}</span>
-                                        </td>
-                                        <td>
-                                            <span className={`${styles.statusBadge} ${isWorking ? styles.statusWorking : styles.statusActive}`}>
-                                                <span className={styles.dot}></span>
-                                                {isWorking ? 'Active' : 'Idle'}
-                                            </span>
-                                        </td>
-                                        <td className={styles.email}>{member.email}</td>
-                                        <td>
-                                            <div className={styles.teamsCell}>
-                                                {teams.map((team, index) => (
-                                                    <span key={index} className={`${styles.teamBadge} ${index === 0 ? styles.primary : ''}`}>
-                                                        {team}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div className={styles.actions}>
-                                                <button className={styles.actionBtn}><Trash2 size={18} /></button>
-                                                <button className={styles.actionBtn}><Edit2 size={18} /></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+                <MembersTable
+                    initialUsers={sortedUsers}
+                    workingUserIds={workingUserIds}
+                />
             </div>
         </div>
     );

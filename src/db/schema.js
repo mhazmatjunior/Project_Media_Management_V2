@@ -1,4 +1,5 @@
 import { pgTable, text, serial, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 // Users table
 export const users = pgTable('users', {
@@ -8,6 +9,7 @@ export const users = pgTable('users', {
     password: text('password').notNull(),
     role: text('role').notNull().default('member'), // 'main_team', 'team_lead', 'member'
     departments: text('departments'), // JSON string or comma-separated list of departments
+    status: text('status').notNull().default('active'), // 'active', 'offline'
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -32,17 +34,6 @@ export const videos = pgTable('videos', {
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Projects table (if you need project management)
-export const projects = pgTable('projects', {
-    id: serial('id').primaryKey(),
-    name: text('name').notNull(),
-    description: text('description'),
-    status: text('status').notNull().default('active'), // 'active', 'completed', 'archived'
-    userId: integer('user_id').references(() => users.id),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
 // Video History table for tracking team collaboration
 export const videoHistory = pgTable('video_history', {
     id: serial('id').primaryKey(),
@@ -52,6 +43,49 @@ export const videoHistory = pgTable('video_history', {
     action: text('action').notNull(), // 'completed'
     timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
+
+// Projects table (Legacy/Optional)
+export const projects = pgTable('projects', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    status: text('status').notNull().default('active'),
+    userId: integer('user_id').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+    sessions: many(videos, { relationName: 'creator' }),
+    assignments: many(videos, { relationName: 'assignee' }),
+    history: many(videoHistory),
+}));
+
+export const videosRelations = relations(videos, ({ one, many }) => ({
+    creator: one(users, {
+        fields: [videos.userId],
+        references: [users.id],
+        relationName: 'creator',
+    }),
+    assignee: one(users, {
+        fields: [videos.assignedTo],
+        references: [users.id],
+        relationName: 'assignee',
+    }),
+    history: many(videoHistory),
+}));
+
+export const videoHistoryRelations = relations(videoHistory, ({ one }) => ({
+    project: one(videos, {
+        fields: [videoHistory.videoId],
+        references: [videos.id],
+    }),
+    user: one(users, {
+        fields: [videoHistory.userId],
+        references: [users.id],
+    }),
+}));
 
 // Reminders table
 export const reminders = pgTable('reminders', {

@@ -61,11 +61,12 @@ export async function PUT(request, { params }) {
         }
 
         // Log history if completing department
-        if (isCompletingDepartment && currentUserId) {
+        const historyUserId = currentUserId || updatedVideo.assignedTo;
+        if (isCompletingDepartment && historyUserId) {
             await db.insert(schema.videoHistory).values({
                 videoId: updatedVideo.id,
-                userId: currentUserId,
-                department: updatedVideo.currentDepartment,
+                userId: historyUserId,
+                department: updatedVideo.currentDepartment || body.currentDepartment || "unknown",
                 action: 'completed',
                 timestamp: new Date(),
             });
