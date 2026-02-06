@@ -98,7 +98,23 @@ const OngoingVideoAnalytics = ({ videos = [] }) => {
                                 />
                                 <Tooltip
                                     cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', background: '#222', color: '#fff' }}
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div style={{
+                                                    borderRadius: '8px',
+                                                    border: 'none',
+                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                    background: '#222',
+                                                    color: '#fff',
+                                                    padding: '8px 12px'
+                                                }}>
+                                                    <p style={{ margin: 0, fontWeight: 500 }}>{payload[0].payload.name}</p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
                                 />
                                 <Bar dataKey="value" radius={[20, 20, 20, 20]} barSize={35} onClick={handleBarClick}>
                                     {chartData.map((entry, index) => (

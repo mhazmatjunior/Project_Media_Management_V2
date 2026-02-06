@@ -52,3 +52,14 @@ export const videoHistory = pgTable('video_history', {
     action: text('action').notNull(), // 'completed'
     timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
+
+// Reminders table
+export const reminders = pgTable('reminders', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    datetime: timestamp('datetime').notNull(),
+    audienceType: text('audience_type').notNull(), // 'all', 'leads', 'members', 'specific'
+    targetUsers: text('target_users'), // JSON string of user IDs for specific targeting
+    createdBy: integer('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});

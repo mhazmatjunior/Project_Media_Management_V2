@@ -5,27 +5,131 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 380px;
+    /* Fixed height for ~3 items */
+    max-height: 380px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
 .title {
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 20px;
     color: var(--secondary-color);
+    margin: 0;
+}
+
+.addButton {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.addButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
 .content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 6px;
+    min-height: 0;
+    /* Crucial for nested flex scrolling */
+}
+
+.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: #666;
+    /* Brighter default */
+    border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+    background: #999;
+    /* Even brighter on hover */
+}
+
+/* Form Styles */
+.form {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    justify-content: space-between;
+    gap: 12px;
+}
+
+.input,
+.select {
+    width: 100%;
+    padding: 10px 12px;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+}
+
+.input:focus,
+.select:focus {
+    border-color: var(--primary-color);
+}
+
+.submitButton {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.submitButton:hover {
+    background-color: var(--primary-hover);
+}
+
+/* List Styles */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.reminderItem {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #222;
+}
+
+.reminderItem:last-child {
+    border-bottom: none;
 }
 
 .meetingTitle {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 600;
     color: var(--secondary-color);
-    margin-bottom: 8px;
+    margin: 0 0 6px 0;
 }
 
 .timeInfo {
@@ -33,8 +137,8 @@
     align-items: center;
     gap: 8px;
     color: var(--text-secondary);
-    font-size: 14px;
-    margin-bottom: 24px;
+    font-size: 13px;
+    margin-bottom: 8px;
 }
 
 .dot {
@@ -44,23 +148,19 @@
     color: var(--primary-color);
 }
 
-.joinButton {
-    background-color: var(--primary-color);
-    /* Red Button */
-    color: white;
-    border: none;
-    border-radius: var(--border-radius-md);
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.audienceBadge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #888;
+    text-transform: capitalize;
 }
 
-.joinButton:hover {
-    background-color: var(--primary-hover);
+.empty {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 20px;
 }

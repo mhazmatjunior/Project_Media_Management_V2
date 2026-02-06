@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Mail, Bell, Command } from "lucide-react";
+import { Mail, Bell } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import styles from "./Header.module.css";
 
@@ -22,18 +22,6 @@ const Header = ({ title }) => {
         <header className={styles.header}>
             <div className={styles.headerTitle}>
                 <h1>{title || "Dashboard"}</h1>
-            </div>
-
-            <div className={styles.searchContainer}>
-                <Search className={styles.searchIcon} size={18} />
-                <input
-                    type="text"
-                    placeholder="Search task"
-                    className={styles.searchInput}
-                />
-                <div className={styles.shortcutHint}>
-                    <Command size={12} className={styles.cmdIcon} /> F
-                </div>
             </div>
 
             <div className={styles.actions}>
