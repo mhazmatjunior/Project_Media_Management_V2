@@ -13,6 +13,6 @@ export const pusherServer = new PusherServer({
 // Client-side Pusher instance
 export const pusherClient = process.env.NEXT_PUBLIC_PUSHER_KEY
     ? new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+        cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || 'ap2',
     })
     : null;
