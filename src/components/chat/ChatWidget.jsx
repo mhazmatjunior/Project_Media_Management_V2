@@ -68,7 +68,21 @@ const ChatWidget = () => {
     // Global Listener (Groups + DM Notifications)
     // Runs once on mount (or user change), DOES NOT re-subscribe on activeChat change
     useEffect(() => {
-        if (!currentUser || !pusherClient) return;
+        if (!currentUser) return;
+
+        if (!pusherClient) {
+            console.error("PUSHER CLIENT NOT INITIALIZED. Check NEXT_PUBLIC_PUSHER_KEY");
+            return;
+        }
+
+        // Debug Connection
+        pusherClient.connection.bind('state_change', (states) => {
+            console.log("Pusher connection state:", states.current);
+        });
+
+        pusherClient.connection.bind('error', (err) => {
+            console.error("Pusher connection error:", err);
+        });
 
         // Fetch initial unread status
         fetchUnread();
