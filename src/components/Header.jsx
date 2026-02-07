@@ -43,13 +43,16 @@ const Header = ({ title }) => {
     const [connectionState, setConnectionState] = useState('disconnected');
     useEffect(() => {
         const { pusherClient } = require('@/lib/pusher');
-        if (pusherClient) {
-            pusherClient.connection.bind('state_change', (states) => {
-                setConnectionState(states.current);
-            });
-            // Initial state
-            setConnectionState(pusherClient.connection.state);
+        if (!pusherClient) {
+            setConnectionState('missing_env');
+            return;
         }
+
+        pusherClient.connection.bind('state_change', (states) => {
+            setConnectionState(states.current);
+        });
+        // Initial state
+        setConnectionState(pusherClient.connection.state);
     }, []);
 
     const formatDate = (dateString) => {
@@ -84,7 +87,10 @@ const Header = ({ title }) => {
                         width: '8px',
                         height: '8px',
                         borderRadius: '50%',
-                        backgroundColor: connectionState === 'connected' ? '#4caf50' : (connectionState === 'connecting' ? '#ff9800' : '#f44336'),
+                        backgroundColor:
+                            connectionState === 'connected' ? '#4caf50' :
+                                (connectionState === 'connecting' ? '#ff9800' :
+                                    (connectionState === 'missing_env' ? '#9e9e9e' : '#f44336')),
                         marginLeft: '10px',
                         display: 'inline-block'
                     }}
