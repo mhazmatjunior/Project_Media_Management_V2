@@ -30,11 +30,20 @@ const ChatWidget = () => {
 
     const messagesEndRef = useRef(null);
 
-    // Keep activeChat in a ref to access it inside Pusher callbacks without re-subscribing
+    // Keep activeChat in a ref to access it inside Pusher callbacks
     const activeChatRef = useRef(activeChat);
     useEffect(() => {
         activeChatRef.current = activeChat;
     }, [activeChat]);
+
+    // Keep isOpen in a ref to access it inside Pusher callbacks
+    const isOpenRef = useRef(isOpen);
+    useEffect(() => {
+        isOpenRef.current = isOpen;
+        if (isOpen) {
+            scrollToBottom();
+        }
+    }, [isOpen]);
 
     // Initial Load
     useEffect(() => {
@@ -97,7 +106,7 @@ const ChatWidget = () => {
 
             // Check Ref, not state
             const current = activeChatRef.current;
-            const isCurrentChat = current?.type === 'dm' && current.id === data.senderId;
+            const isCurrentChat = isOpenRef.current && current?.type === 'dm' && current.id === data.senderId;
 
             if (!isCurrentChat) {
                 setUnread(prev => ({ ...prev, [`dm-${data.senderId}`]: true }));
@@ -117,7 +126,7 @@ const ChatWidget = () => {
                 if (data.senderId === currentUser.id) return;
 
                 const current = activeChatRef.current;
-                const isCurrentChat = current?.type === 'group' && current.id === g.id;
+                const isCurrentChat = isOpenRef.current && current?.type === 'group' && current.id === g.id;
 
                 if (!isCurrentChat) {
                     setUnread(prev => ({ ...prev, [`group-${g.id}`]: true }));
