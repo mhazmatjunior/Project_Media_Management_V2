@@ -12,6 +12,7 @@ export const users = pgTable('users', {
     role: text('role').notNull().default('member'), // 'main_team', 'team_lead', 'member'
     departments: text('departments'), // JSON string or comma-separated list of departments
     status: text('status').notNull().default('active'), // 'active', 'offline'
+    tokenVersion: integer('token_version').notNull().default(1),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
