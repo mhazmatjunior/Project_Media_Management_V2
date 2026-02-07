@@ -39,6 +39,19 @@ const Header = ({ title }) => {
         }
     };
 
+    // DEBUG: Connection Status
+    const [connectionState, setConnectionState] = useState('disconnected');
+    useEffect(() => {
+        const { pusherClient } = require('@/lib/pusher');
+        if (pusherClient) {
+            pusherClient.connection.bind('state_change', (states) => {
+                setConnectionState(states.current);
+            });
+            // Initial state
+            setConnectionState(pusherClient.connection.state);
+        }
+    }, []);
+
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return {
@@ -64,6 +77,18 @@ const Header = ({ title }) => {
                     </button>
                 )}
                 <h1>{title || "Dashboard"}</h1>
+                {/* Debug Indicator */}
+                <div
+                    title={`Chat Status: ${connectionState}`}
+                    style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: connectionState === 'connected' ? '#4caf50' : (connectionState === 'connecting' ? '#ff9800' : '#f44336'),
+                        marginLeft: '10px',
+                        display: 'inline-block'
+                    }}
+                />
             </div>
 
             <div className={styles.actions}>
