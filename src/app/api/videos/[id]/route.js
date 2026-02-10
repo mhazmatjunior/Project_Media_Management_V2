@@ -2,6 +2,35 @@ import { NextResponse } from 'next/server';
 import { db, schema } from '@/db';
 import { eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
+import { R2, R2_BUCKET_NAME } from '@/lib/r2';
+import { DeleteObjectsCommand } from '@aws-sdk/client-s3';
+
+// Helper to delete assets for a video
+async function deleteVideoAssets(videoId) {
+    try {
+        // 1. Get all assets
+        const assets = await db.select().from(schema.videoAssets).where(eq(schema.videoAssets.videoId, videoId));
+
+        if (assets.length > 0) {
+            // 2. Delete from R2
+            const deleteParams = {
+                Bucket: R2_BUCKET_NAME,
+                Delete: {
+                    Objects: assets.map(a => ({ Key: a.fileName })),
+                    Quiet: true,
+                },
+            };
+            await R2.send(new DeleteObjectsCommand(deleteParams));
+
+            // 3. Delete from DB
+            await db.delete(schema.videoAssets).where(eq(schema.videoAssets.videoId, videoId));
+            console.log(`Deleted ${assets.length} assets for video ${videoId}`);
+        }
+    } catch (error) {
+        console.error('Error cleaning up assets:', error);
+        // We don't block the video update/delete if cleanup fails, but we verify it.
+    }
+}
 
 // PUT /api/videos/[id] - Update video
 export async function PUT(request, { params }) {
@@ -25,6 +54,7 @@ export async function PUT(request, { params }) {
         // Map app status to DB status if provided
         const updateData = {};
         const isCompletingDepartment = body.status === 'department_completed';
+        const isFinishingProject = body.status === 'ended';
 
         if (body.name) updateData.title = body.name;
         if (body.description) updateData.description = body.description;
@@ -46,6 +76,11 @@ export async function PUT(request, { params }) {
         }
 
         updateData.updatedAt = new Date();
+
+        // CLEANUP LOGIC: If video is marked as finished (ended/completed)
+        if (isFinishingProject) {
+            await deleteVideoAssets(parseInt(id));
+        }
 
         const [updatedVideo] = await db
             .update(schema.videos)
@@ -97,10 +132,17 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
     try {
         const { id } = await params;
+        const videoId = parseInt(id);
+
+        // CLEANUP LOGIC: Delete assets before deleting video
+        await deleteVideoAssets(videoId);
+
+        // Delete history first (foreign key constraint)
+        await db.delete(schema.videoHistory).where(eq(schema.videoHistory.videoId, videoId));
 
         await db
             .delete(schema.videos)
-            .where(eq(schema.videos.id, parseInt(id)));
+            .where(eq(schema.videos.id, videoId));
 
         return NextResponse.json({ success: true });
     } catch (error) {

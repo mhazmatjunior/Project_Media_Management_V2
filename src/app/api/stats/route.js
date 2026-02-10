@@ -2,9 +2,18 @@ import { NextResponse } from 'next/server';
 import { db, schema } from '@/db';
 import { eq } from 'drizzle-orm';
 
+import { cookies } from 'next/headers';
+
 // GET /api/stats - Fetch aggregated statistics
 export async function GET() {
     try {
+        const cookieStore = await cookies();
+        const session = cookieStore.get('user_session');
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const videos = await db.select().from(schema.videos);
 
         const stats = {

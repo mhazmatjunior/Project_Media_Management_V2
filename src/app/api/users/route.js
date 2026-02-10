@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db, schema } from '@/db';
 
+import { cookies } from 'next/headers';
+
 export async function GET() {
     try {
+        const cookieStore = await cookies();
+        const session = cookieStore.get('user_session');
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const users = await db.select({
             id: schema.users.id,
             name: schema.users.name,

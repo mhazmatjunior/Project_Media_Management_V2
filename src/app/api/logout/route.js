@@ -4,7 +4,7 @@ export async function POST(request) {
     const response = NextResponse.json({ success: true, message: 'Logged out successfully' });
 
     // Clear the session cookie
-    response.cookies.delete('user_session');
+    response.cookies.delete('user_session', { path: '/' });
 
     return response;
 }

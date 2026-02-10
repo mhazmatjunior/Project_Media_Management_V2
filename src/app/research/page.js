@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
 import VideoDetailsModal from "@/components/VideoDetailsModal";
+import FinishTaskModal from "@/components/FinishTaskModal";
 import styles from "@/styles/SharedLayout.module.css";
 
 export default function ResearchPage() {
@@ -18,10 +19,10 @@ export default function ResearchPage() {
     const [members, setMembers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
     const [viewingVideo, setViewingVideo] = useState(null);
+    const [videoToFinish, setVideoToFinish] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
-    // Check authentication
     // Check authentication and permissions
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -52,8 +53,7 @@ export default function ResearchPage() {
                 if (hasAccess) {
                     setAuthChecked(true);
                 } else {
-                    // Redirect to their own department
-                    router.push('/'); // Or handle smarter redirect
+                    router.push('/');
                 }
             }
         }
@@ -82,16 +82,11 @@ export default function ResearchPage() {
             const response = await fetch('/api/videos');
             const data = await response.json();
 
-            // Filter videos that are running and in research department
-            let research = data.filter(v => v.status === 'running' && v.currentDepartment === 'research');
-
             const session = JSON.parse(localStorage.getItem('user_session'));
             const isMember = session?.role === 'member';
             const userId = session?.id;
 
-            if (isMember) {
-                research = research.filter(v => v.assignedTo === userId);
-            }
+            let research = data.filter(v => v.status === 'running' && v.currentDepartment === 'research');
 
             if (isMember) {
                 research = research.filter(v => v.assignedTo === userId);
@@ -129,7 +124,6 @@ export default function ResearchPage() {
                 throw new Error('Failed to assign video');
             }
 
-            // Refresh the list
             await fetchResearchVideos();
         } catch (error) {
             console.error('Error assigning video:', error);
@@ -147,7 +141,7 @@ export default function ResearchPage() {
                 body: JSON.stringify({
                     currentDepartment: 'writer',
                     status: 'running', // Reset to running for next department
-                    assignedTo: null, // Reset assignment when forwarding
+                    assignedTo: null,
                 }),
             });
 
@@ -155,7 +149,6 @@ export default function ResearchPage() {
                 throw new Error('Failed to forward video');
             }
 
-            // Refresh the list
             await fetchResearchVideos();
             if (selectedTask?.id === videoId) {
                 setSelectedTask(null);
@@ -163,6 +156,25 @@ export default function ResearchPage() {
         } catch (error) {
             console.error('Error forwarding video:', error);
             alert('Failed to forward video. Please try again.');
+        }
+    };
+
+    const handleConfirmFinish = async () => {
+        if (!videoToFinish) return;
+
+        try {
+            const response = await fetch(`/api/videos/${videoToFinish.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'department_completed' }),
+            });
+            if (!response.ok) throw new Error('Failed to mark as done');
+
+            await fetchResearchVideos();
+            setVideoToFinish(null);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to mark as done');
         }
     };
 
@@ -178,7 +190,6 @@ export default function ResearchPage() {
         }
     };
 
-    // Don't render until auth is verified
     if (!authChecked) {
         return null;
     }
@@ -202,20 +213,9 @@ export default function ResearchPage() {
                             loading={loading}
                             showForwardButton={false}
                             showFinishButton={userRole === 'member'}
-                            onFinishClick={async (id) => {
-                                // Mark as Done (department_completed)
-                                try {
-                                    const response = await fetch(`/api/videos/${id}`, {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ status: 'department_completed' }),
-                                    });
-                                    if (!response.ok) throw new Error('Failed to mark as done');
-                                    await fetchResearchVideos();
-                                } catch (error) {
-                                    console.error('Error:', error);
-                                    alert('Failed to mark as done');
-                                }
+                            onFinishClick={(id) => {
+                                const video = researchVideos.find(v => v.id === id);
+                                setVideoToFinish(video);
                             }}
                             finishButtonText="Done"
                             members={members}
@@ -244,6 +244,14 @@ export default function ResearchPage() {
                 onClose={() => setViewingVideo(null)}
                 video={viewingVideo}
             />
-        </div >
+            <FinishTaskModal
+                isOpen={!!videoToFinish}
+                onClose={() => setVideoToFinish(null)}
+                onConfirm={handleConfirmFinish}
+                videoId={videoToFinish?.id}
+                department="research"
+                title={videoToFinish?.name}
+            />
+        </div>
     );
 }

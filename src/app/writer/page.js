@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
 import VideoDetailsModal from "@/components/VideoDetailsModal";
+import FinishTaskModal from "@/components/FinishTaskModal";
 import styles from "@/styles/SharedLayout.module.css";
 
 export default function WriterPage() {
@@ -18,10 +19,10 @@ export default function WriterPage() {
     const [members, setMembers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
     const [viewingVideo, setViewingVideo] = useState(null);
+    const [videoToFinish, setVideoToFinish] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
-    // Check authentication
     // Check authentication and permissions
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -86,10 +87,6 @@ export default function WriterPage() {
             const userId = session?.id;
 
             let writer = data.filter(v => v.status === 'running' && v.currentDepartment === 'writer');
-
-            if (isMember) {
-                writer = writer.filter(v => v.assignedTo === userId);
-            }
 
             if (isMember) {
                 writer = writer.filter(v => v.assignedTo === userId);
@@ -162,6 +159,25 @@ export default function WriterPage() {
         }
     };
 
+    const handleConfirmFinish = async () => {
+        if (!videoToFinish) return;
+
+        try {
+            const response = await fetch(`/api/videos/${videoToFinish.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'department_completed' }),
+            });
+            if (!response.ok) throw new Error('Failed to mark as done');
+
+            await fetchWriterVideos();
+            setVideoToFinish(null);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to mark as done');
+        }
+    };
+
     const handleTaskClick = (project) => {
         setViewingVideo(project);
     };
@@ -197,20 +213,9 @@ export default function WriterPage() {
                             loading={loading}
                             showForwardButton={false}
                             showFinishButton={userRole === 'member'}
-                            onFinishClick={async (id) => {
-                                // Mark as Done (department_completed)
-                                try {
-                                    const response = await fetch(`/api/videos/${id}`, {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ status: 'department_completed' }),
-                                    });
-                                    if (!response.ok) throw new Error('Failed to mark as done');
-                                    await fetchWriterVideos();
-                                } catch (error) {
-                                    console.error('Error:', error);
-                                    alert('Failed to mark as done');
-                                }
+                            onFinishClick={(id) => {
+                                const video = writerVideos.find(v => v.id === id);
+                                setVideoToFinish(video);
                             }}
                             finishButtonText="Done"
                             members={members}
@@ -222,9 +227,8 @@ export default function WriterPage() {
                         />
                         <ProjectList
                             title="Completed Tasks"
-                            projects={loading ? [] : completedWriterVideos} // We need to fetch these
+                            projects={loading ? [] : completedWriterVideos}
                             showDepartmentBadge={false}
-                            showForwardButton={userRole !== 'member'}
                             showForwardButton={userRole !== 'member'}
                             onForwardClick={handleForward}
                             onSelect={handleTaskClick}
@@ -240,6 +244,14 @@ export default function WriterPage() {
                 onClose={() => setViewingVideo(null)}
                 video={viewingVideo}
             />
-        </div >
+            <FinishTaskModal
+                isOpen={!!videoToFinish}
+                onClose={() => setVideoToFinish(null)}
+                onConfirm={handleConfirmFinish}
+                videoId={videoToFinish?.id}
+                department="writer"
+                title={videoToFinish?.name}
+            />
+        </div>
     );
 }

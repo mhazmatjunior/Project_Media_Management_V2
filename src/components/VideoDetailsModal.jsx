@@ -1,15 +1,46 @@
-"use client";
-import React from 'react';
+import AssetList from './AssetList';
+import FileUploader from './FileUploader';
+import { getSession } from '@/lib/auth';
+import { useState, useEffect } from 'react';
 import { X, Calendar, User, Activity } from 'lucide-react';
 
 const VideoDetailsModal = ({ isOpen, onClose, video }) => {
+    const [user, setUser] = useState(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    useEffect(() => {
+        if (isOpen) {
+            setUser(getSession());
+        }
+    }, [isOpen]);
+
     if (!isOpen || !video) return null;
+
+    // Permissions Logic
+    const isMainTeam = user?.role === 'main_team';
+    const isTeamLead = user?.role === 'team_lead';
+    // Find if the lead is in the right department
+    let userDeps = [];
+    if (user?.departments) {
+        try {
+            userDeps = JSON.parse(user.departments);
+        } catch (e) {
+            userDeps = user.departments.split(',').map(d => d.trim());
+        }
+    }
+    const isLeadOfCurrentDept = isTeamLead && userDeps.some(d => d.toLowerCase() === video.currentDepartment?.toLowerCase());
+
+    const canUpload = isMainTeam || isLeadOfCurrentDept;
 
     // Close on backdrop click
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
             onClose();
         }
+    };
+
+    const handleUploadComplete = () => {
+        setRefreshTrigger(prev => prev + 1);
     };
 
     return (
@@ -30,9 +61,9 @@ const VideoDetailsModal = ({ isOpen, onClose, video }) => {
                 backgroundColor: 'var(--surface-color)',
                 border: '1px solid var(--border-color)',
                 borderRadius: 'var(--border-radius-lg)',
-                width: '600px',
+                width: '650px',
                 maxWidth: '90%',
-                maxHeight: '85vh',
+                maxHeight: '90vh',
                 overflowY: 'auto',
                 padding: '30px',
                 position: 'relative',
@@ -106,38 +137,68 @@ const VideoDetailsModal = ({ isOpen, onClose, video }) => {
                     )}
                 </div>
 
-                <div style={{
-                    backgroundColor: 'var(--background-color)',
-                    padding: '20px',
-                    borderRadius: 'var(--border-radius-sm)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                    lineHeight: '1.6',
-                    fontSize: '16px',
-                    whiteSpace: 'pre-wrap'
-                }}>
-                    {video.description || "No description provided."}
+                <div style={{ marginBottom: '25px' }}>
+                    <h3 style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Description</h3>
+                    <div style={{
+                        backgroundColor: 'var(--background-color)',
+                        padding: '20px',
+                        borderRadius: 'var(--border-radius-sm)',
+                        border: '1px solid var(--border-color)',
+                        color: 'var(--text-primary)',
+                        lineHeight: '1.6',
+                        fontSize: '15px',
+                        whiteSpace: 'pre-wrap'
+                    }}>
+                        {video.description || "No description provided."}
+                    </div>
                 </div>
 
+                {/* Assets Section */}
+                <div style={{ marginBottom: '25px' }}>
+                    <h3 style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Attached Files</h3>
+                    <div style={{
+                        backgroundColor: 'var(--background-color)',
+                        borderRadius: 'var(--border-radius-sm)',
+                        border: '1px solid var(--border-color)',
+                        padding: '5px'
+                    }}>
+                        <AssetList videoId={video.id} refreshTrigger={refreshTrigger} />
+                    </div>
+                </div>
+
+                {/* Upload Section - Only for Authorized Roles */}
+                {canUpload && (
+                    <div style={{ marginBottom: '25px' }}>
+                        <h3 style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Upload New Asset</h3>
+                        <FileUploader
+                            videoId={video.id}
+                            department={isMainTeam ? 'Main Team' : video.currentDepartment}
+                            onUploadComplete={handleUploadComplete}
+                        />
+                    </div>
+                )}
+
                 <div style={{
-                    marginTop: '25px',
+                    marginTop: '30px',
                     display: 'flex',
-                    justifyContent: 'flex-end'
+                    justifyContent: 'flex-end',
+                    borderTop: '1px solid var(--border-color)',
+                    paddingTop: '20px'
                 }}>
                     <button
                         onClick={onClose}
                         style={{
                             padding: '10px 24px',
-                            backgroundColor: 'var(--primary-color)',
+                            backgroundColor: 'white',
                             border: 'none',
                             borderRadius: 'var(--border-radius-sm)',
-                            color: '#fff',
+                            color: 'black',
                             cursor: 'pointer',
                             fontWeight: '600',
-                            transition: 'opacity 0.2s'
+                            transition: 'all 0.2s'
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
-                        onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#ddd'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}
                     >
                         Close
                     </button>

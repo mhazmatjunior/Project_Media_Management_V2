@@ -4,7 +4,16 @@ import { users } from '@/db/schema';
 import { NextResponse } from 'next/server';
 import { like, or, eq, and, ne } from 'drizzle-orm';
 
+import { cookies } from 'next/headers';
+
 export async function GET(request, { params }) {
+    const cookieStore = await cookies();
+    const session = cookieStore.get('user_session');
+
+    if (!session) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const { department } = await params;
 

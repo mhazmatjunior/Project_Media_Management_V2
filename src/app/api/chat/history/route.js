@@ -3,8 +3,17 @@ import { db } from '@/db';
 import { messages, users } from '@/db/schema';
 import { eq, or, and, asc } from 'drizzle-orm';
 
+import { cookies } from 'next/headers';
+
 export async function GET(request) {
     try {
+        const cookieStore = await cookies();
+        const session = cookieStore.get('user_session');
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { searchParams } = new URL(request.url);
         const channel = searchParams.get('channel');
         const userId1 = searchParams.get('userId1'); // Current User

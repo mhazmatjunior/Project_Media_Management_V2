@@ -19,9 +19,14 @@ const Sidebar = () => {
   const [user, setUser] = useState(null);
 
   const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+    } catch (e) {
+      console.error("Logout API failed", e);
+    }
     clearSession();
-    router.push('/');
+    // Use window.location.href for a full reload to clear all React state and memory
+    window.location.href = '/';
   };
 
   useEffect(() => {

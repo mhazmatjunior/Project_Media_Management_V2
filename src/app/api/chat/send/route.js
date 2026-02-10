@@ -2,18 +2,19 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { messages } from '@/db/schema';
 import { pusherServer } from '@/lib/pusher';
-import { getSession } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 export async function POST(request) {
     try {
-        const session = await getSession(); // This might need adjustment based on how auth works in this app
-        // For now, assume session user is passed or we verify it some other way.
-        // Actually, getSession usually reads from cookies.
+        const cookieStore = await cookies();
+        const sessionCookie = cookieStore.get('user_session');
 
-        // If your auth system is custom, we might need to parse headers.
-        // Let's assume the client sends userId for now if getSession isn't robust, 
-        // but ideally we decode the token. 
-        // Based on previous files, getSession seems to exist in @/lib/auth.
+        if (!sessionCookie) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const session = JSON.parse(sessionCookie.value);
+
 
         const body = await request.json();
         const { content, channel, receiverId, currentUserId } = body;

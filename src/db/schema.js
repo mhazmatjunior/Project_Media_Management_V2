@@ -47,6 +47,18 @@ export const videoHistory = pgTable('video_history', {
     timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
 
+// Video Assets table
+export const videoAssets = pgTable('video_assets', {
+    id: serial('id').primaryKey(),
+    videoId: integer('video_id').references(() => videos.id).notNull(),
+    department: text('department').notNull(), // 'research', 'writer', 'speaker', 'video', 'graphics'
+    fileName: text('file_name').notNull(), // R2 Key
+    fileUrl: text('file_url'), // Public URL or just key
+    fileType: text('file_type'),
+    size: integer('size'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Projects table (Legacy/Optional)
 export const projects = pgTable('projects', {
     id: serial('id').primaryKey(),

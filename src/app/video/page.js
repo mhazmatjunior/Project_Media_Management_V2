@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
 import VideoDetailsModal from "@/components/VideoDetailsModal";
+import FinishTaskModal from "@/components/FinishTaskModal";
 import styles from "@/styles/SharedLayout.module.css";
 
 export default function VideoDepPage() {
@@ -18,6 +19,7 @@ export default function VideoDepPage() {
     const [members, setMembers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
     const [viewingVideo, setViewingVideo] = useState(null);
+    const [videoToFinish, setVideoToFinish] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -157,6 +159,25 @@ export default function VideoDepPage() {
         }
     };
 
+    const handleConfirmFinish = async () => {
+        if (!videoToFinish) return;
+
+        try {
+            const response = await fetch(`/api/videos/${videoToFinish.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'department_completed' }),
+            });
+            if (!response.ok) throw new Error('Failed to mark as done');
+
+            await fetchVideoVideos();
+            setVideoToFinish(null);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to mark as done');
+        }
+    };
+
     const handleTaskClick = (project) => {
         setViewingVideo(project);
     };
@@ -192,20 +213,9 @@ export default function VideoDepPage() {
                             loading={loading}
                             showForwardButton={false}
                             showFinishButton={userRole === 'member'}
-                            onFinishClick={async (id) => {
-                                // Mark as Done (department_completed)
-                                try {
-                                    const response = await fetch(`/api/videos/${id}`, {
-                                        method: 'PUT',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ status: 'department_completed' }),
-                                    });
-                                    if (!response.ok) throw new Error('Failed to mark as done');
-                                    await fetchVideoVideos();
-                                } catch (error) {
-                                    console.error('Error:', error);
-                                    alert('Failed to mark as done');
-                                }
+                            onFinishClick={(id) => {
+                                const video = videoVideos.find(v => v.id === id);
+                                setVideoToFinish(video);
                             }}
                             finishButtonText="Done"
                             members={members}
@@ -219,7 +229,6 @@ export default function VideoDepPage() {
                             title="Completed Tasks"
                             projects={loading ? [] : completedVideoVideos}
                             showDepartmentBadge={false}
-                            showForwardButton={userRole !== 'member'}
                             showForwardButton={userRole !== 'member'}
                             onForwardClick={handleForward}
                             onSelect={handleTaskClick}
@@ -235,6 +244,14 @@ export default function VideoDepPage() {
                 onClose={() => setViewingVideo(null)}
                 video={viewingVideo}
             />
-        </div >
+            <FinishTaskModal
+                isOpen={!!videoToFinish}
+                onClose={() => setVideoToFinish(null)}
+                onConfirm={handleConfirmFinish}
+                videoId={videoToFinish?.id}
+                department="video"
+                title={videoToFinish?.name}
+            />
+        </div>
     );
 }

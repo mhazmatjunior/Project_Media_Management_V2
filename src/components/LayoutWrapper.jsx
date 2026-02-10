@@ -17,7 +17,10 @@ export default function LayoutWrapper({ children }) {
             const { getSession, clearSession } = require("@/lib/auth");
             const session = getSession();
 
-            if (!session) return; // If no session, wait for redirect or manual login
+            if (!session) {
+                router.push('/');
+                return;
+            }
 
             try {
                 const res = await fetch('/api/auth/validate', {

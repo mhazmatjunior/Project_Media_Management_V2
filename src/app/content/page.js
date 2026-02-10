@@ -15,10 +15,15 @@ const DEPARTMENTS = [
 
 const CATEGORIES = ["YL", "CTA"];
 
+import { isAuthenticated } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+
 export default function ContentPage() {
+    const router = useRouter();
     // State for the content data
     const [data, setData] = useState({});
     const [isLoaded, setIsLoaded] = useState(false);
+    const [userRole, setUserRole] = useState(null);
 
     // Selection state
     const [selectedDept, setSelectedDept] = useState(null);
@@ -29,8 +34,18 @@ export default function ContentPage() {
     const [formCat, setFormCat] = useState(CATEGORIES[0]);
     const [formTopic, setFormTopic] = useState("");
 
-    // Load data from localStorage on mount
+    // Load data from localStorage on mount and check auth
     useEffect(() => {
+        if (!isAuthenticated()) {
+            router.push('/');
+            return;
+        }
+
+        const session = JSON.parse(localStorage.getItem('user_session'));
+        if (session) {
+            setUserRole(session.role);
+        }
+
         const savedData = localStorage.getItem("content_calendar_data");
         if (savedData) {
             setData(JSON.parse(savedData));
@@ -46,7 +61,7 @@ export default function ContentPage() {
             setData(initialData);
         }
         setIsLoaded(true);
-    }, []);
+    }, [router]);
 
     // Save data to localStorage whenever it changes
     useEffect(() => {
@@ -144,48 +159,50 @@ export default function ContentPage() {
                 </div>
             </div>
 
-            {/* Input Form */}
-            <div className={styles.formSection}>
-                <h2 className={styles.formTitle}>Add New Content</h2>
-                <form onSubmit={handleAddTopic} className={styles.formGrid}>
+            {/* Input Form - Only visible to main_team */}
+            {userRole === 'main_team' && (
+                <div className={styles.formSection}>
+                    <h2 className={styles.formTitle}>Add New Content</h2>
+                    <form onSubmit={handleAddTopic} className={styles.formGrid}>
 
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Department</label>
-                        <CustomSelect
-                            options={DEPARTMENTS}
-                            value={formDept}
-                            onChange={setFormDept}
-                            placeholder="Select Department"
-                        />
-                    </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Department</label>
+                            <CustomSelect
+                                options={DEPARTMENTS}
+                                value={formDept}
+                                onChange={setFormDept}
+                                placeholder="Select Department"
+                            />
+                        </div>
 
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Category</label>
-                        <CustomSelect
-                            options={CATEGORIES}
-                            value={formCat}
-                            onChange={setFormCat}
-                            placeholder="Select Category"
-                        />
-                    </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Category</label>
+                            <CustomSelect
+                                options={CATEGORIES}
+                                value={formCat}
+                                onChange={setFormCat}
+                                placeholder="Select Category"
+                            />
+                        </div>
 
-                    <div className={styles.formGroup}>
-                        <label className={styles.label}>Topic</label>
-                        <input
-                            type="text"
-                            className={styles.input}
-                            placeholder="Enter topic title..."
-                            value={formTopic}
-                            onChange={(e) => setFormTopic(e.target.value)}
-                        />
-                    </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Topic</label>
+                            <input
+                                type="text"
+                                className={styles.input}
+                                placeholder="Enter topic title..."
+                                value={formTopic}
+                                onChange={(e) => setFormTopic(e.target.value)}
+                            />
+                        </div>
 
-                    <button type="submit" className={styles.button} disabled={!formTopic.trim()}>
-                        Add to Calendar
-                    </button>
+                        <button type="submit" className={styles.button} disabled={!formTopic.trim()}>
+                            Add to Calendar
+                        </button>
 
-                </form>
-            </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 }

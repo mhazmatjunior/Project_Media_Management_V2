@@ -3,18 +3,20 @@ import { db, schema } from '@/db';
 import { eq, and, isNull } from 'drizzle-orm';
 import { getSession } from '@/lib/auth';
 
+import { cookies } from 'next/headers';
+
 export async function GET(request) {
     try {
-        // Fallback to query param since getSession uses localStorage (client-only)
-        const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('userId');
+        const cookieStore = await cookies();
+        const sessionCookie = cookieStore.get('user_session');
 
-        if (!userId) {
-            return NextResponse.json({ error: 'Unauthorized: Missing userId' }, { status: 401 });
+        if (!sessionCookie) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Use the query param ID
-        const currentUserId = parseInt(userId);
+        const session = JSON.parse(sessionCookie.value);
+        const currentUserId = session.id;
+
 
         // Fetch unread messages where receiver is current user
         const unreadMessages = await db.select({

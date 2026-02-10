@@ -2,9 +2,18 @@ import { NextResponse } from 'next/server';
 import { db, schema } from '@/db';
 import { asc } from 'drizzle-orm';
 
+import { cookies } from 'next/headers';
+
 // GET /api/reminders - Fetch all reminders (for dashboard)
 export async function GET() {
     try {
+        const cookieStore = await cookies();
+        const session = cookieStore.get('user_session');
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const reminders = await db
             .select()
             .from(schema.reminders)
@@ -23,6 +32,13 @@ export async function GET() {
 // POST /api/reminders - Create new reminder
 export async function POST(request) {
     try {
+        const cookieStore = await cookies();
+        const session = cookieStore.get('user_session');
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { title, datetime, audienceType, targetUsers, createdBy } = body;
 
