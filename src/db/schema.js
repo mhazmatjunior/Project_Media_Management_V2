@@ -59,6 +59,15 @@ export const videoAssets = pgTable('video_assets', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Content topics table (Content Calendar)
+export const contentTopics = pgTable('content_topics', {
+    id: serial('id').primaryKey(),
+    department: text('department').notNull(), // 'Research', 'Writer', etc.
+    category: text('category').notNull(), // 'YL', 'CTA'
+    topic: text('topic').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Projects table (Legacy/Optional)
 export const projects = pgTable('projects', {
     id: serial('id').primaryKey(),

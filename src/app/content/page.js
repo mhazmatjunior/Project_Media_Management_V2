@@ -24,6 +24,7 @@ export default function ContentPage() {
     const [data, setData] = useState({});
     const [isLoaded, setIsLoaded] = useState(false);
     const [userRole, setUserRole] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     // Selection state
     const [selectedDept, setSelectedDept] = useState(null);
@@ -34,60 +35,86 @@ export default function ContentPage() {
     const [formCat, setFormCat] = useState(CATEGORIES[0]);
     const [formTopic, setFormTopic] = useState("");
 
-    // Load data from localStorage on mount and check auth
+    // Fetch data from API on mount and check auth
     useEffect(() => {
-        if (!isAuthenticated()) {
-            router.push('/');
-            return;
-        }
+        const init = async () => {
+            if (!isAuthenticated()) {
+                router.push('/');
+                return;
+            }
 
-        const session = JSON.parse(localStorage.getItem('user_session'));
-        if (session) {
-            setUserRole(session.role);
-        }
+            const session = JSON.parse(localStorage.getItem('user_session'));
+            if (session) {
+                setUserRole(session.role);
+            }
 
-        const savedData = localStorage.getItem("content_calendar_data");
-        if (savedData) {
-            setData(JSON.parse(savedData));
-        } else {
-            // Initialize empty structure
-            const initialData = {};
-            DEPARTMENTS.forEach(dept => {
-                initialData[dept] = {};
-                CATEGORIES.forEach(cat => {
-                    initialData[dept][cat] = [];
-                });
-            });
-            setData(initialData);
-        }
-        setIsLoaded(true);
+            try {
+                const res = await fetch('/api/content');
+                if (res.ok) {
+                    const topics = await res.json();
+
+                    // Transform flat DB array into the indexed structure expected by the UI
+                    const organizedData = {};
+                    DEPARTMENTS.forEach(dept => {
+                        organizedData[dept] = {};
+                        CATEGORIES.forEach(cat => {
+                            organizedData[dept][cat] = [];
+                        });
+                    });
+
+                    topics.forEach(t => {
+                        if (organizedData[t.department] && organizedData[t.department][t.category]) {
+                            organizedData[t.department][t.category].push(t.topic);
+                        }
+                    });
+
+                    setData(organizedData);
+                }
+            } catch (error) {
+                console.error("Failed to fetch content topics:", error);
+            } finally {
+                setIsLoaded(true);
+                setLoading(false);
+            }
+        };
+
+        init();
     }, [router]);
 
-    // Save data to localStorage whenever it changes
-    useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem("content_calendar_data", JSON.stringify(data));
-        }
-    }, [data, isLoaded]);
-
-    const handleAddTopic = (e) => {
+    const handleAddTopic = async (e) => {
         e.preventDefault();
         if (!formTopic.trim()) return;
 
-        const newData = { ...data };
+        try {
+            const res = await fetch('/api/content', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    department: formDept,
+                    category: formCat,
+                    topic: formTopic
+                })
+            });
 
-        // Ensure structure exists (just in case)
-        if (!newData[formDept]) newData[formDept] = {};
-        if (!newData[formDept][formCat]) newData[formDept][formCat] = [];
+            if (res.ok) {
+                const newTopic = await res.json();
 
-        newData[formDept][formCat].push(formTopic);
+                // Update local state and auto-select
+                const newData = { ...data };
+                if (!newData[newTopic.department]) newData[newTopic.department] = {};
+                if (!newData[newTopic.department][newTopic.category]) newData[newTopic.department][newTopic.category] = [];
 
-        setData(newData);
-        setFormTopic("");
+                newData[newTopic.department][newTopic.category].push(newTopic.topic);
 
-        // Auto-select the added path to show the new item
-        setSelectedDept(formDept);
-        setSelectedCat(formCat);
+                setData(newData);
+                setFormTopic("");
+                setSelectedDept(newTopic.department);
+                setSelectedCat(newTopic.category);
+            }
+        } catch (error) {
+            console.error("Failed to add topic:", error);
+            alert("Failed to save topic to database.");
+        }
     };
 
     const currentCategories = selectedDept ? CATEGORIES : [];
