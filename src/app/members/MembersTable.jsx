@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Edit2, X, Clock, Save, Check } from "lucide-react";
+import { Edit2, X, Clock, Save, Check, Trash2 } from "lucide-react";
 import styles from "./page.module.css";
 
 const MembersTable = ({ initialUsers, workingUserIds }) => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [selectedFilters, setSelectedFilters] = useState([]);
 
     // Edit Modal State
     const [editingUser, setEditingUser] = useState(null);
@@ -16,8 +17,10 @@ const MembersTable = ({ initialUsers, workingUserIds }) => {
         departments: []
     });
     const [saving, setSaving] = useState(false);
+    const [deletingUser, setDeletingUser] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
-    const availableDepartments = ['Research', 'Writer', 'Speaker', 'Graphics'];
+    const availableDepartments = ['Research', 'Writer', 'Speaker', 'Video', 'Graphics'];
 
     const formatRole = (role) => {
         if (role === 'team_lead') return 'Team Lead';
@@ -58,6 +61,37 @@ const MembersTable = ({ initialUsers, workingUserIds }) => {
             departments: currentDeps.map(d => d.toLowerCase()) // normalize
         });
         setEditingUser(user);
+    };
+
+    const handleDeleteClick = (e, user) => {
+        e.stopPropagation();
+        setDeletingUser(user);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingUser) return;
+        setDeleting(true);
+        try {
+            const res = await fetch(`/api/users/${deletingUser.id}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to delete member');
+            }
+        } catch (error) {
+            console.error('Delete failed:', error);
+            alert('Delete failed');
+        } finally {
+            setDeleting(false);
+            setDeletingUser(null);
+        }
+    };
+
+    const closeDeleteDialog = () => {
+        setDeletingUser(null);
     };
 
     const handleSaveEdit = async () => {
@@ -108,8 +142,58 @@ const MembersTable = ({ initialUsers, workingUserIds }) => {
         setEditingUser(null);
     };
 
+    const toggleFilter = (dept) => {
+        const d = dept.toLowerCase();
+        setSelectedFilters(prev =>
+            prev.includes(d)
+                ? prev.filter(f => f !== d)
+                : [...prev, d]
+        );
+    };
+
+    const filteredUsers = initialUsers.filter(user => {
+        if (selectedFilters.length === 0) return true;
+
+        let userDeps = [];
+        try {
+            userDeps = user.departments ? JSON.parse(user.departments) : [];
+        } catch (e) {
+            userDeps = [];
+        }
+        if (typeof userDeps === 'string') userDeps = [userDeps];
+        userDeps = userDeps.map(d => d.toLowerCase());
+
+        return selectedFilters.some(f => userDeps.includes(f));
+    });
+
     return (
         <>
+            <div className={styles.filterSection}>
+                <span className={styles.filterLabel}>Filter by Department:</span>
+                <div className={styles.filterChips}>
+                    {availableDepartments.map(dept => {
+                        const d = dept.toLowerCase();
+                        const isSelected = selectedFilters.includes(d);
+                        return (
+                            <button
+                                key={dept}
+                                className={`${styles.filterChip} ${isSelected ? styles.filterChipActive : ''}`}
+                                onClick={() => toggleFilter(dept)}
+                            >
+                                {dept}
+                            </button>
+                        );
+                    })}
+                    {selectedFilters.length > 0 && (
+                        <button
+                            className={styles.clearFilter}
+                            onClick={() => setSelectedFilters([])}
+                        >
+                            Clear All
+                        </button>
+                    )}
+                </div>
+            </div>
             <div className={styles.tableContainer}>
                 <table className={styles.table}>
                     <thead>
@@ -123,7 +207,7 @@ const MembersTable = ({ initialUsers, workingUserIds }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {initialUsers.map((member) => {
+                        {filteredUsers.map((member) => {
                             let teams = [];
                             try {
                                 teams = member.departments ? JSON.parse(member.departments) : [];
@@ -194,6 +278,13 @@ const MembersTable = ({ initialUsers, workingUserIds }) => {
                                             >
                                                 <Edit2 size={18} />
                                             </button>
+                                            <button
+                                                className={styles.actionBtn}
+                                                onClick={(e) => handleDeleteClick(e, member)}
+                                                style={{ color: '#ef4444' }}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -242,6 +333,67 @@ const MembersTable = ({ initialUsers, workingUserIds }) => {
                                     No completed tasks found.
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deletingUser && (
+                <div className={styles.modalOverlay} style={{ zIndex: 1200 }}>
+                    <div className={styles.modalContent} style={{ maxWidth: '400px' }}>
+                        <div className={styles.modalHeader}>
+                            <div className={styles.modalHeaderLeft}>
+                                <Trash2 size={16} className={styles.modalIcon} style={{ color: '#ef4444' }} />
+                                <h3 className={styles.modalTitle} style={{ color: '#ef4444' }}>Delete Member</h3>
+                            </div>
+                            <button className={styles.closeBtn} onClick={closeDeleteDialog}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className={styles.modalBody} style={{ padding: '24px' }}>
+                            <p style={{ color: 'var(--text-primary)', marginBottom: '16px', fontSize: '14px' }}>
+                                Are you sure you want to delete <strong>{deletingUser.name}</strong>?
+                            </p>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '24px', lineHeight: '1.5' }}>
+                                This action cannot be undone. This will permanently remove the user from the database and the application.
+                            </p>
+
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button
+                                    onClick={closeDeleteDialog}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--border-color)',
+                                        background: 'transparent',
+                                        color: 'var(--text-primary)',
+                                        cursor: 'pointer',
+                                        fontWeight: '500'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    disabled={deleting}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px',
+                                        borderRadius: '8px',
+                                        border: 'none',
+                                        background: '#ef4444',
+                                        color: 'white',
+                                        cursor: deleting ? 'not-allowed' : 'pointer',
+                                        fontWeight: '500',
+                                        opacity: deleting ? 0.7 : 1
+                                    }}
+                                >
+                                    {deleting ? 'Deleting...' : 'Delete Member'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

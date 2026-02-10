@@ -13,6 +13,71 @@
 }
 
 /* Table Card */
+.filterSection {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.filterLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filterChips {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filterChip {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filterChip:hover {
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.filterChipActive {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.filterChipActive:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.clearFilter {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 4px 8px;
+}
+
+.clearFilter:hover {
+    color: var(--text-primary);
+}
+
 .tableContainer {
     background-color: var(--surface-color);
     border-radius: var(--border-radius-lg);

@@ -28,6 +28,7 @@ async function seedUsers() {
             { email: 'lead.research@media.com', name: 'Research Lead', role: 'team_lead', departments: '["Research"]' },
             { email: 'lead.writer@media.com', name: 'Writer Lead', role: 'team_lead', departments: '["Writer"]' },
             { email: 'lead.speaker@media.com', name: 'Speaker Lead', role: 'team_lead', departments: '["Speaker"]' },
+            { email: 'lead.video@media.com', name: 'Video Lead', role: 'team_lead', departments: '["Video"]' },
             { email: 'lead.graphics@media.com', name: 'Graphics Lead', role: 'team_lead', departments: '["Graphics"]' },
 
             // Members
@@ -37,6 +38,8 @@ async function seedUsers() {
 
             // New Members (Batch 2)
             { email: 'member.speaker@media.com', name: 'Speaker Member', role: 'member', departments: '["Speaker"]' },
+            { email: 'member.video1@media.com', name: 'Video Member 1', role: 'member', departments: '["Video"]' },
+            { email: 'member.video2@media.com', name: 'Video Member 2', role: 'member', departments: '["Video"]' },
             { email: 'member.graphics@media.com', name: 'Graphics Member', role: 'member', departments: '["Graphics"]' },
             { email: 'member.research2@media.com', name: 'Research Member 2', role: 'member', departments: '["Research"]' },
             { email: 'member.writer2@media.com', name: 'Writer Member 2', role: 'member', departments: '["Writer"]' },

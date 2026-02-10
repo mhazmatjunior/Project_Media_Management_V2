@@ -8,10 +8,11 @@ const COLORS = ['var(--primary-color)', 'rgba(255,255,255,0.1)'];
 // Department to completion percentage mapping
 // Shows the percentage of work completed BEFORE entering this department
 const DEPARTMENT_PROGRESS = {
-    'research': 0,   // Just started
-    'writer': 25,    // Research completed
-    'speaker': 50,   // Research + Writer completed
-    'graphics': 75,  // Research + Writer + Speaker completed
+    'research': 0,
+    'writer': 20,
+    'speaker': 40,
+    'video': 60,
+    'graphics': 80,
 };
 
 // Department display names (capitalize)
@@ -19,6 +20,7 @@ const DEPARTMENT_NAMES = {
     'research': 'Research',
     'writer': 'Writer',
     'speaker': 'Speaker',
+    'video': 'Video',
     'graphics': 'Graphics',
 };
 

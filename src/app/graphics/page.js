@@ -6,6 +6,7 @@ import { isAuthenticated } from '@/lib/auth';
 import Header from "@/components/Header";
 import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
+import VideoDetailsModal from "@/components/VideoDetailsModal";
 import styles from "@/styles/SharedLayout.module.css";
 
 export default function GraphicsPage() {
@@ -16,7 +17,9 @@ export default function GraphicsPage() {
     const [authChecked, setAuthChecked] = useState(false);
     const [members, setMembers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(null);
+    const [viewingVideo, setViewingVideo] = useState(null);
     const [userRole, setUserRole] = useState(null);
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     // Check authentication
     // Check authentication and permissions
@@ -27,6 +30,7 @@ export default function GraphicsPage() {
             const session = JSON.parse(localStorage.getItem('user_session'));
             if (session) {
                 setUserRole(session.role);
+                setCurrentUserId(session.id);
                 let hasAccess = false;
                 if (session.role === 'main_team') hasAccess = true;
                 else {
@@ -156,7 +160,11 @@ export default function GraphicsPage() {
         }
     };
 
-    const handleTaskSelect = (project) => {
+    const handleTaskClick = (project) => {
+        setViewingVideo(project);
+    };
+
+    const handleTimeClick = (project) => {
         if (selectedTask?.id === project.id) {
             setSelectedTask(null);
         } else {
@@ -203,8 +211,10 @@ export default function GraphicsPage() {
                             }}
                             finishButtonText="Done"
                             members={members}
+                            currentUserId={currentUserId}
                             onAssign={userRole === 'member' ? null : handleAssign}
-                            onSelect={handleTaskSelect}
+                            onSelect={handleTaskClick}
+                            onTimeClick={handleTimeClick}
                             selectedTaskId={selectedTask?.id}
                         />
                         <ProjectList
@@ -213,13 +223,19 @@ export default function GraphicsPage() {
                             showDepartmentBadge={false}
                             showFinishButton={userRole !== 'member'} // Lead can Finish (End) the video
                             onFinishClick={handleFinish}
-                            onSelect={handleTaskSelect}
+                            onSelect={handleTaskClick}
+                            onTimeClick={handleTimeClick}
                             selectedTaskId={selectedTask?.id}
                         />
                     </div>
                     <TimeTracker selectedTask={selectedTask} />
                 </div>
             </div>
-        </div>
+            <VideoDetailsModal
+                isOpen={!!viewingVideo}
+                onClose={() => setViewingVideo(null)}
+                video={viewingVideo}
+            />
+        </div >
     );
 }

@@ -1,9 +1,10 @@
-import { Plus, Play, ArrowRight, CheckCircle, ChevronDown, User } from "lucide-react";
+import { Plus, Play, ArrowRight, CheckCircle, ChevronDown, User, Clock } from "lucide-react";
 import styles from "./ProjectList.module.css";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 const AssignmentDropdown = ({ members, assignedTo, onAssign }) => {
+    // ... (rest of AssignmentDropdown remains same)
     const [isOpen, setIsOpen] = useState(false);
     const [coords, setCoords] = useState({ top: 0, left: 0 });
     const dropdownRef = useRef(null);
@@ -53,7 +54,7 @@ const AssignmentDropdown = ({ members, assignedTo, onAssign }) => {
     };
 
     return (
-        <div className={styles.dropdownWrapper} ref={dropdownRef}>
+        <div className={styles.dropdownWrapper} ref={dropdownRef} onClick={(e) => e.stopPropagation()}>
             {assignedTo ? (
                 <button
                     className={styles.assignedButton}
@@ -84,6 +85,7 @@ const AssignmentDropdown = ({ members, assignedTo, onAssign }) => {
                         zIndex: 9999,
                         minWidth: coords.width
                     }}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     {assignedTo && (
                         <div
@@ -114,6 +116,43 @@ const AssignmentDropdown = ({ members, assignedTo, onAssign }) => {
     );
 };
 
+const ProjectTimer = ({ startTime }) => {
+    const [elapsed, setElapsed] = useState("00:00:00");
+
+    useEffect(() => {
+        if (!startTime) return;
+
+        const updateTimer = () => {
+            const start = new Date(startTime).getTime();
+            const now = new Date().getTime();
+            const diff = now - start;
+
+            if (diff < 0) {
+                setElapsed("00:00:00");
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            setElapsed(
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+            );
+        };
+
+        updateTimer();
+        const id = setInterval(updateTimer, 1000);
+        return () => clearInterval(id);
+    }, [startTime]);
+
+    return (
+        <span className={styles.projectTimer}>
+            {elapsed}
+        </span>
+    );
+};
+
 const ProjectList = ({
     projects = [],
     showAddButton = false,
@@ -129,10 +168,15 @@ const ProjectList = ({
     onAssign,
     title = "Videos List",
     onSelect,
+    onTimeClick, // New prop for time tracking
+    showTimer = false, // New prop to control timer visibility
     selectedTaskId,
     loading = false,
-    finishButtonText = "Finish"
+    finishButtonText = "Finish",
+    currentUserId = null
 }) => {
+    // ... (rest of ProjectList)
+
     return (
         <div className={styles.card}>
             <div className={styles.header}>
@@ -161,7 +205,7 @@ const ProjectList = ({
                     projects.map((project, index) => (
                         <div
                             key={index}
-                            className={`${styles.item} ${selectedTaskId === project.id ? styles.selected : ''}`}
+                            className={styles.item}
                             onClick={() => onSelect && onSelect(project)}
                             style={{ cursor: onSelect ? 'pointer' : 'default' }}
                         >
@@ -170,12 +214,21 @@ const ProjectList = ({
                             </div>
                             <div className={styles.details}>
                                 <h4 className={styles.name}>{project.name}</h4>
-                                <p className={styles.date}>{project.date || project.description}</p>
-                                {project.assigneeName && (
+                                <div className={styles.metaRow}>
+                                    <p className={styles.date}>{project.date || project.description}</p>
+                                    {showTimer && project.status === 'running' && project.departmentEnteredAt && (
+                                        <ProjectTimer startTime={project.departmentEnteredAt} />
+                                    )}
+                                </div>
+                                {project.status === 'ended' ? (
+                                    <span className={styles.assignedTo} style={{ color: 'var(--success-color, #10B981)' }}>
+                                        Completed
+                                    </span>
+                                ) : (project.assigneeName && (
                                     <span className={styles.assignedTo}>
                                         Assigned to: {project.assigneeName}
                                     </span>
-                                )}
+                                ))}
                             </div>
 
                             {onAssign && (
@@ -188,6 +241,19 @@ const ProjectList = ({
                                 </div>
                             )}
 
+                            {onTimeClick && (
+                                <button
+                                    className={`${styles.timerButton} ${selectedTaskId === project.id ? styles.timerActive : ''}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onTimeClick(project);
+                                    }}
+                                    title="Track Time"
+                                >
+                                    <Clock size={16} />
+                                </button>
+                            )}
+
                             {showDepartmentBadge && project.currentDepartment && (
                                 <span className={styles.departmentBadge}>
                                     {project.currentDepartment.charAt(0).toUpperCase() + project.currentDepartment.slice(1)}
@@ -196,7 +262,10 @@ const ProjectList = ({
                             {showStartButton && onStartClick && (
                                 <button
                                     className={styles.startButton}
-                                    onClick={() => onStartClick(project.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onStartClick(project.id);
+                                    }}
                                     title="Start video"
                                 >
                                     <Play size={16} />
@@ -206,17 +275,23 @@ const ProjectList = ({
                             {showForwardButton && onForwardClick && (
                                 <button
                                     className={styles.forwardButton}
-                                    onClick={() => onForwardClick(project.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onForwardClick(project.id);
+                                    }}
                                     title="Forward to next department"
                                 >
                                     <ArrowRight size={16} />
                                     <span>Forward</span>
                                 </button>
                             )}
-                            {showFinishButton && onFinishClick && (
+                            {(showFinishButton || (currentUserId && String(project.assignedTo) === String(currentUserId))) && onFinishClick && (
                                 <button
                                     className={styles.finishButton}
-                                    onClick={() => onFinishClick(project.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onFinishClick(project.id);
+                                    }}
                                     title="Mark as finished"
                                 >
                                     <CheckCircle size={16} />

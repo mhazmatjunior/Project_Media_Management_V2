@@ -24,7 +24,7 @@ export const videos = pgTable('videos', {
     thumbnail: text('thumbnail'),
     videoUrl: text('video_url'),
     status: text('status').notNull().default('pending'), // 'pending', 'in_progress', 'completed', 'archived'
-    currentDepartment: text('current_department'), // 'research', 'writer', 'speaker', 'graphics'
+    currentDepartment: text('current_department'), // 'research', 'writer', 'speaker', 'video', 'graphics'
     category: text('category').default('general'), // 'general', 'tutorial', 'vlog', etc.
     views: integer('views').default(0),
     likes: integer('likes').default(0),
@@ -42,7 +42,7 @@ export const videoHistory = pgTable('video_history', {
     id: serial('id').primaryKey(),
     videoId: integer('video_id').references(() => videos.id).notNull(),
     userId: integer('user_id').references(() => users.id).notNull(),
-    department: text('department').notNull(), // 'research', 'writer', 'speaker', 'graphics'
+    department: text('department').notNull(), // 'research', 'writer', 'speaker', 'video', 'graphics'
     action: text('action').notNull(), // 'completed'
     timestamp: timestamp('timestamp').defaultNow().notNull(),
 });

@@ -9,10 +9,10 @@ import TimeTracker from "@/components/TimeTracker";
 import VideoDetailsModal from "@/components/VideoDetailsModal";
 import styles from "@/styles/SharedLayout.module.css";
 
-export default function SpeakerPage() {
+export default function VideoDepPage() {
     const router = useRouter();
-    const [speakerVideos, setSpeakerVideos] = useState([]);
-    const [completedSpeakerVideos, setCompletedSpeakerVideos] = useState([]);
+    const [videoVideos, setVideoVideos] = useState([]);
+    const [completedVideoVideos, setCompletedVideoVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [authChecked, setAuthChecked] = useState(false);
     const [members, setMembers] = useState([]);
@@ -21,7 +21,6 @@ export default function SpeakerPage() {
     const [userRole, setUserRole] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
-    // Check authentication
     // Check authentication and permissions
     useEffect(() => {
         if (!isAuthenticated()) {
@@ -46,7 +45,7 @@ export default function SpeakerPage() {
                     // Normalize
                     userDeps = userDeps.map(d => d.toLowerCase());
 
-                    if (userDeps.includes('speaker')) hasAccess = true;
+                    if (userDeps.includes('video')) hasAccess = true;
                 }
 
                 if (hasAccess) {
@@ -60,14 +59,14 @@ export default function SpeakerPage() {
 
     useEffect(() => {
         if (authChecked) {
-            fetchSpeakerVideos();
+            fetchVideoVideos();
             fetchMembers();
         }
     }, [authChecked]);
 
     const fetchMembers = async () => {
         try {
-            const response = await fetch('/api/users/department/speaker');
+            const response = await fetch('/api/users/department/video');
             const data = await response.json();
             setMembers(data);
         } catch (error) {
@@ -75,7 +74,7 @@ export default function SpeakerPage() {
         }
     };
 
-    const fetchSpeakerVideos = async () => {
+    const fetchVideoVideos = async () => {
         try {
             setLoading(true);
             const response = await fetch('/api/videos');
@@ -85,27 +84,23 @@ export default function SpeakerPage() {
             const isMember = session?.role === 'member';
             const userId = session?.id;
 
-            let speaker = data.filter(v => v.status === 'running' && v.currentDepartment === 'speaker');
+            let video = data.filter(v => v.status === 'running' && v.currentDepartment === 'video');
 
             if (isMember) {
-                speaker = speaker.filter(v => v.assignedTo === userId);
+                video = video.filter(v => v.assignedTo === userId);
             }
 
-            if (isMember) {
-                speaker = speaker.filter(v => v.assignedTo === userId);
-            }
-
-            setSpeakerVideos(speaker);
+            setVideoVideos(video);
 
             // Fetch completed/review tasks for this department
             const completed = data.filter(v =>
-                v.currentDepartment === 'speaker' &&
+                v.currentDepartment === 'video' &&
                 v.status === 'department_completed'
             );
-            setCompletedSpeakerVideos(completed);
+            setCompletedVideoVideos(completed);
 
         } catch (error) {
-            console.error('Error fetching speaker videos:', error);
+            console.error('Error fetching video videos:', error);
         } finally {
             setLoading(false);
         }
@@ -127,7 +122,7 @@ export default function SpeakerPage() {
                 throw new Error('Failed to assign video');
             }
 
-            await fetchSpeakerVideos();
+            await fetchVideoVideos();
         } catch (error) {
             console.error('Error assigning video:', error);
             alert('Failed to assign video. Please try again.');
@@ -142,7 +137,7 @@ export default function SpeakerPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    currentDepartment: 'video',
+                    currentDepartment: 'graphics',
                     status: 'running', // Reset to running for next department
                     assignedTo: null,
                 }),
@@ -152,7 +147,7 @@ export default function SpeakerPage() {
                 throw new Error('Failed to forward video');
             }
 
-            await fetchSpeakerVideos();
+            await fetchVideoVideos();
             if (selectedTask?.id === videoId) {
                 setSelectedTask(null);
             }
@@ -178,18 +173,14 @@ export default function SpeakerPage() {
         return null;
     }
 
-    if (!authChecked) {
-        return null;
-    }
-
     return (
         <div className={styles.pageContainer}>
-            <Header title="Speaker Dep" />
+            <Header title="Video Dep" />
             <div className={styles.contentContainer}>
                 <div className={styles.pageHeader}>
-                    <h2>Speaker Analytics</h2>
+                    <h2>Video Editing & Production</h2>
                     <p className={styles.pageDescription}>
-                        Voice recording and narration for videos.
+                        Post-production, visual effects, and final assembly.
                     </p>
                 </div>
 
@@ -197,7 +188,7 @@ export default function SpeakerPage() {
                     <div className={styles.taskListColumn}>
                         <ProjectList
                             title={userRole === 'member' ? "Assigned Tasks" : "Active Tasks"}
-                            projects={speakerVideos}
+                            projects={videoVideos}
                             loading={loading}
                             showForwardButton={false}
                             showFinishButton={userRole === 'member'}
@@ -210,7 +201,7 @@ export default function SpeakerPage() {
                                         body: JSON.stringify({ status: 'department_completed' }),
                                     });
                                     if (!response.ok) throw new Error('Failed to mark as done');
-                                    await fetchSpeakerVideos();
+                                    await fetchVideoVideos();
                                 } catch (error) {
                                     console.error('Error:', error);
                                     alert('Failed to mark as done');
@@ -226,7 +217,7 @@ export default function SpeakerPage() {
                         />
                         <ProjectList
                             title="Completed Tasks"
-                            projects={loading ? [] : completedSpeakerVideos}
+                            projects={loading ? [] : completedVideoVideos}
                             showDepartmentBadge={false}
                             showForwardButton={userRole !== 'member'}
                             showForwardButton={userRole !== 'member'}

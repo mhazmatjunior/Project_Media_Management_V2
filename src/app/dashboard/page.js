@@ -8,12 +8,14 @@ import OngoingVideoAnalytics from "@/components/OngoingVideoAnalytics";
 import ReminderCard from "@/components/ReminderCard";
 import ProjectList from "@/components/ProjectList";
 import AddProjectModal from "@/components/AddProjectModal";
+import VideoDetailsModal from "@/components/VideoDetailsModal";
 import styles from "./page.module.css";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [selectedStat, setSelectedStat] = useState('Total Videos');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -229,6 +231,8 @@ export default function DashboardPage() {
                 showStartButton={selectedStat === 'Pending Videos'} // Show Start button for pending
                 onStartClick={handleStartVideo}
                 showDepartmentBadge={selectedStat === 'Running Videos'} // Show department badge for running videos
+                showTimer={selectedStat === 'Running Videos'} // Show timer for running videos list
+                onSelect={(video) => setSelectedVideo(video)}
               />
             </div>
           )}
@@ -240,6 +244,12 @@ export default function DashboardPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAdd={handleAddProject}
+      />
+
+      <VideoDetailsModal
+        isOpen={!!selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+        video={selectedVideo}
       />
     </div>
   );

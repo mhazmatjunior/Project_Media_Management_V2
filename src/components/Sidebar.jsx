@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { clearSession } from "@/lib/auth";
 import {
-  LayoutDashboard, FileSearch, PenTool, Mic, Palette, Users,
-  LogOut, ChevronLeft, ChevronRight, X
+  LayoutDashboard, FileSearch, PenTool, Mic, Video, Palette, Users,
+  LogOut, ChevronLeft, ChevronRight, X, Calendar
 } from "lucide-react";
 import Logo from "./Logo";
 import styles from "./Sidebar.module.css";
@@ -38,16 +38,18 @@ const Sidebar = () => {
 
   const allMenuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+
     { name: "Research Dep", icon: FileSearch, path: "/research", key: "research" },
     { name: "Writer Dep", icon: PenTool, path: "/writer", key: "writer" },
     { name: "Speaker Dep", icon: Mic, path: "/speaker", key: "speaker" },
+    { name: "Video Dep", icon: Video, path: "/video", key: "video" },
     { name: "Graphics Dep", icon: Palette, path: "/graphics", key: "graphics" },
   ];
 
   const menuItems = allMenuItems.filter(item => {
     if (!user) return false;
     if (user.role === 'main_team') return true;
-    if (item.path === '/dashboard') return false;
+    if (item.path === '/dashboard') return true;
     let userDeps = [];
     if (user.departments) {
       try {
@@ -64,9 +66,10 @@ const Sidebar = () => {
 
   const generalItems = [
     { name: "Members", icon: Users, path: "/members" },
+    { name: "Content", icon: Calendar, path: "/content" },
   ].filter(item => {
     if (!user) return false;
-    if (item.path === '/members' && user.role !== 'main_team') return false;
+    if (item.path === '/members' && user.role !== 'main_team' && user.role !== 'team_lead') return false;
     return true;
   });
 

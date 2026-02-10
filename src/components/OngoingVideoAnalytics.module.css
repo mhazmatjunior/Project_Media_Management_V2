@@ -65,14 +65,16 @@
     display: flex;
     flex: 1;
     gap: 24px;
-    overflow: hidden;
+    /* Reduced margin/overflow constraints */
 }
 
 .half {
     flex: 1;
     display: flex;
     flex-direction: column;
-    /* overflow-y: auto; Removed to prevent scrollbar */
+    min-height: 200px;
+    max-height: 350px;
+    /* Constrain height for smaller screens/containers */
 }
 
 .separator {

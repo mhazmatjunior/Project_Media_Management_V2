@@ -21,7 +21,10 @@ export async function GET(request, { params }) {
                         like(users.departments, `%${department}%`),
                         like(users.departments, `%${department.charAt(0).toUpperCase() + department.slice(1)}%`)
                     ),
-                    eq(users.role, 'member'),
+                    or(
+                        eq(users.role, 'member'),
+                        eq(users.role, 'team_lead')
+                    ),
                     ne(users.status, 'offline')
                 )
             );

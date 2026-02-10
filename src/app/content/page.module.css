@@ -1,0 +1,302 @@
+.container {
+    padding: 2rem;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    color: #ededed;
+}
+
+.header {
+    margin-bottom: 1rem;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: bold;
+    background: linear-gradient(45deg, #fff, #999);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Miller Columns Layout */
+.columnsContainer {
+    display: flex;
+    gap: 1.5rem;
+    height: 60vh;
+    /* Increased height slightly */
+    width: 100%;
+}
+
+.column {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    /* Default transition */
+    transition: all 0.3s ease;
+}
+
+/* Specific Column Widths */
+.column:nth-child(1),
+.column:nth-child(2) {
+    flex: 0 0 220px;
+    /* Fixed narrower width for Dept and Cat */
+    min-width: 0;
+    /* Allow shrinking if needed, though fixed is better here */
+}
+
+.column:nth-child(3) {
+    flex: 1;
+    /* Takes remaining space for Topics */
+}
+
+.columnHeader {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.item {
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.5rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    transform: translateX(4px);
+}
+
+.activeItem {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+.activeItem:hover {
+    background: var(--primary-hover);
+    transform: translateX(4px);
+}
+
+.topicItem {
+    cursor: default;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+}
+
+.topicItem:hover {
+    transform: none;
+    border-color: var(--text-secondary);
+}
+
+.emptyState {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 2rem 1rem;
+    opacity: 0.7;
+}
+
+/* Form Section */
+.formSection {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    margin-top: auto;
+    /* Push to bottom if container has height */
+}
+
+.formTitle {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 200px 200px 1fr auto;
+    gap: 1.5rem;
+    align-items: end;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.select,
+.input {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+    /* Custom Select Styling */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px;
+    /* Space for the arrow */
+    cursor: pointer;
+}
+
+.select:focus,
+.input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2);
+}
+
+/* Style dropdown options */
+.select option {
+    background: var(--surface-color);
+    color: var(--text-primary);
+    padding: 10px;
+}
+
+.topicIndex {
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+
+/* Custom Select Component */
+.customSelect {
+    position: relative;
+    width: 100%;
+    font-family: inherit;
+}
+
+.selectTrigger {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.selectTrigger:hover {
+    border-color: var(--text-secondary);
+}
+
+.selectOpen {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2);
+}
+
+.selectOptions {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    /* Open Upwards */
+    left: 0;
+    width: 100%;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+.selectOption {
+    padding: 0.75rem 1rem;
+    /* Added padding as requested */
+    cursor: pointer;
+    transition: background 0.2s;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.selectOption:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.selected {
+    background: var(--primary-color);
+    color: white;
+}
+
+.selected:hover {
+    background: var(--primary-hover);
+}
+
+.button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 42px;
+    /* Consistency with inputs */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+}
+
+.button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    background: var(--border-color);
+}
