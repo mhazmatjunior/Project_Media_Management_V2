@@ -1,4 +1,4 @@
-import { Plus, Play, ArrowRight, CheckCircle, ChevronDown, User, Clock } from "lucide-react";
+import { Plus, Play, ArrowRight, CheckCircle, ChevronDown, User, Clock, RotateCcw } from "lucide-react";
 import styles from "./ProjectList.module.css";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -173,7 +173,9 @@ const ProjectList = ({
     selectedTaskId,
     loading = false,
     finishButtonText = "Finish",
-    currentUserId = null
+    currentUserId = null,
+    showRollbackButton = false,
+    onRollbackClick
 }) => {
     // ... (rest of ProjectList)
 
@@ -298,6 +300,34 @@ const ProjectList = ({
                                     <span>{finishButtonText}</span>
                                 </button>
                             )}
+                            {showRollbackButton && onRollbackClick && (
+                                <button
+                                    className={styles.rollbackButton}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onRollbackClick(project.id);
+                                    }}
+                                    title="Rollback to active"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '6px 12px',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        borderRadius: 'var(--border-radius-sm)',
+                                        border: '1px solid var(--border-color)',
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        marginLeft: '8px'
+                                    }}
+                                >
+                                    <RotateCcw size={14} />
+                                    <span>Rollback</span>
+                                </button>
+                            )}
                         </div>
                     ))
                 ) : (
@@ -306,7 +336,7 @@ const ProjectList = ({
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 

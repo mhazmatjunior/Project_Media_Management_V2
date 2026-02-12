@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Edit2, X, Clock, Save, Check, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Edit2, X, Clock, Save, Check, Trash2, Trophy } from "lucide-react";
 import styles from "./page.module.css";
 
-const MembersTable = ({ initialUsers, workingUserIds }) => {
+const MembersTable = ({ initialUsers, workingUserIds, userRole }) => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -193,6 +194,11 @@ const MembersTable = ({ initialUsers, workingUserIds }) => {
                         </button>
                     )}
                 </div>
+                {userRole === 'main_team' && (
+                    <Link href="/leaderboard" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'var(--text-secondary)', fontSize: '13px', fontWeight: '500' }}>
+                        <Trophy size={16} /> Leaderboard
+                    </Link>
+                )}
             </div>
             <div className={styles.tableContainer}>
                 <table className={styles.table}>

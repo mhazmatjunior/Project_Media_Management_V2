@@ -23,6 +23,8 @@ export async function PUT(request, { params }) {
             .where(eq(users.id, parseInt(id)))
             .returning();
 
+        return NextResponse.json(updatedUser[0]);
+
     } catch (error) {
         console.error('Error updating user:', error);
         return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });

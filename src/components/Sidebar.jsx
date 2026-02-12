@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { clearSession } from "@/lib/auth";
 import {
   LayoutDashboard, FileSearch, PenTool, Mic, Video, Palette, Users,
-  LogOut, ChevronLeft, ChevronRight, X, Calendar
+  LogOut, ChevronLeft, ChevronRight, X, Calendar, Trophy
 } from "lucide-react";
 import Logo from "./Logo";
 import styles from "./Sidebar.module.css";
@@ -54,7 +54,7 @@ const Sidebar = () => {
   const menuItems = allMenuItems.filter(item => {
     if (!user) return false;
     if (user.role === 'main_team') return true;
-    if (item.path === '/dashboard') return true;
+    // if (item.path === '/dashboard') return true;
     let userDeps = [];
     if (user.departments) {
       try {
@@ -72,9 +72,11 @@ const Sidebar = () => {
   const generalItems = [
     { name: "Members", icon: Users, path: "/members" },
     { name: "Content", icon: Calendar, path: "/content" },
+    { name: "Leaderboard", icon: Trophy, path: "/leaderboard" },
   ].filter(item => {
     if (!user) return false;
     if (item.path === '/members' && user.role !== 'main_team' && user.role !== 'team_lead') return false;
+    if (item.path === '/leaderboard' && user.role === 'main_team') return false;
     return true;
   });
 
@@ -133,7 +135,7 @@ const Sidebar = () => {
           </nav>
         </div>
 
-        <div className={styles.menuSection}>
+        <div className={`${styles.menuSection} ${styles.generalSection}`}>
           <h3 className={styles.menuTitle}>GENERAL</h3>
           <nav className={styles.nav}>
             {generalItems.map((item) => {

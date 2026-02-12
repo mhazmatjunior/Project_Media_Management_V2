@@ -51,6 +51,15 @@ export async function PUT(request, { params }) {
             }
         }
 
+        // Fetch current video state BEFORE update to compare department/assignee
+        const currentVideo = await db.query.videos.findFirst({
+            where: eq(schema.videos.id, parseInt(id))
+        });
+
+        if (!currentVideo) {
+            return NextResponse.json({ error: 'Video not found' }, { status: 404 });
+        }
+
         // Map app status to DB status if provided
         const updateData = {};
         const isCompletingDepartment = body.status === 'department_completed';
@@ -95,13 +104,16 @@ export async function PUT(request, { params }) {
             );
         }
 
-        // Log history if completing department
-        const historyUserId = currentUserId || updatedVideo.assignedTo;
-        if (isCompletingDepartment && historyUserId) {
+        // Check if we need to log history (Department Forward or Project End)
+        // Logic: If department is changing OR project is ending, credit the PREVIOUS assignee/department
+        const isChangingDepartment = body.currentDepartment && body.currentDepartment !== currentVideo.currentDepartment;
+        const shouldLogHistory = isChangingDepartment || isFinishingProject;
+
+        if (shouldLogHistory && currentVideo.assignedTo) {
             await db.insert(schema.videoHistory).values({
-                videoId: updatedVideo.id,
-                userId: historyUserId,
-                department: updatedVideo.currentDepartment || body.currentDepartment || "unknown",
+                videoId: currentVideo.id,
+                userId: currentVideo.assignedTo, // Credit the user who WAS assigned
+                department: currentVideo.currentDepartment || "unknown", // Credit the department it WAS in
                 action: 'completed',
                 timestamp: new Date(),
             });

@@ -96,6 +96,7 @@ export default async function MembersPage() {
                 <MembersTable
                     initialUsers={sortedUsers}
                     workingUserIds={workingUserIds}
+                    userRole={userRole}
                 />
             </div>
         </div>

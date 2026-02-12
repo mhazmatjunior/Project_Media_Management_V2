@@ -8,6 +8,7 @@ import ProjectList from "@/components/ProjectList";
 import TimeTracker from "@/components/TimeTracker";
 import VideoDetailsModal from "@/components/VideoDetailsModal";
 import FinishTaskModal from "@/components/FinishTaskModal";
+import RollbackModal from "@/components/RollbackModal";
 import styles from "@/styles/SharedLayout.module.css";
 
 export default function WriterPage() {
@@ -20,6 +21,7 @@ export default function WriterPage() {
     const [selectedTask, setSelectedTask] = useState(null);
     const [viewingVideo, setViewingVideo] = useState(null);
     const [videoToFinish, setVideoToFinish] = useState(null);
+    const [videoToRollback, setVideoToRollback] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -178,6 +180,34 @@ export default function WriterPage() {
         }
     };
 
+    const handleRollback = (video) => {
+        const videoObj = completedWriterVideos.find(v => v.id === video);
+        setVideoToRollback(videoObj || { id: video, name: 'Task' });
+    };
+
+    const handleConfirmRollback = async () => {
+        if (!videoToRollback) return;
+
+        try {
+            const response = await fetch(`/api/videos/${videoToRollback.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'running',
+                    assignedTo: null
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to rollback video');
+
+            await fetchWriterVideos();
+            setVideoToRollback(null);
+        } catch (error) {
+            console.error('Error rolling back video:', error);
+            alert('Failed to rollback video');
+        }
+    };
+
     const handleTaskClick = (project) => {
         setViewingVideo(project);
     };
@@ -231,6 +261,8 @@ export default function WriterPage() {
                             showDepartmentBadge={false}
                             showForwardButton={userRole !== 'member'}
                             onForwardClick={handleForward}
+                            showRollbackButton={userRole !== 'member'}
+                            onRollbackClick={handleRollback}
                             onSelect={handleTaskClick}
                             onTimeClick={handleTimeClick}
                             selectedTaskId={selectedTask?.id}
@@ -251,6 +283,12 @@ export default function WriterPage() {
                 videoId={videoToFinish?.id}
                 department="writer"
                 title={videoToFinish?.name}
+            />
+            <RollbackModal
+                isOpen={!!videoToRollback}
+                onClose={() => setVideoToRollback(null)}
+                onConfirm={handleConfirmRollback}
+                title={videoToRollback?.name}
             />
         </div>
     );
