@@ -31,7 +31,12 @@ export async function POST(request) {
         }
 
         // Verify password
+        console.log(`[LOGIN DEBUG] Attempting login for: ${email}`);
+        console.log(`[LOGIN DEBUG] Stored hash: ${user.password.substring(0, 15)}...`);
+        console.log(`[LOGIN DEBUG] Provided password: ${password}`); // Care: logic only, assuming temporary debug
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log(`[LOGIN DEBUG] Password match result: ${isPasswordValid}`);
 
         if (!isPasswordValid) {
             return NextResponse.json(
