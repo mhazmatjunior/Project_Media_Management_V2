@@ -42,3 +42,10 @@ next-env.d.ts
 
 .vercel
 .env*.local
+# automation & scripts
+seed_real_users.js
+debug_*.js
+debug_*.mjs
+check_groups.js
+migrate_*.js
+reset_unread_*.js

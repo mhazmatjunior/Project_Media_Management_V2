@@ -16,6 +16,24 @@ export const users = pgTable('users', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Groups table
+export const groups = pgTable('groups', {
+    id: serial('id').primaryKey(),
+    name: text('name').notNull(),
+    type: text('type').default('group'), // 'group', 'dm'
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Group Members table
+export const groupMembers = pgTable('group_members', {
+    id: serial('id').primaryKey(),
+    groupId: integer('group_id').references(() => groups.id).notNull(),
+    userId: integer('user_id').references(() => users.id).notNull(),
+    role: text('role').default('member'), // 'admin', 'member'
+    lastReadAt: timestamp('last_read_at').defaultNow(), // For tracking unread messages
+    joinedAt: timestamp('joined_at').defaultNow().notNull(),
+});
+
 // Videos table
 export const videos = pgTable('videos', {
     id: serial('id').primaryKey(),
@@ -96,7 +114,8 @@ export const messages = pgTable('messages', {
     content: text('content').notNull(),
     senderId: integer('sender_id').references(() => users.id).notNull(),
     receiverId: integer('receiver_id').references(() => users.id), // Nullable for group messages
-    channel: text('channel'), // 'main', 'research', 'writer', 'speaker', 'graphic' or null for DM
+    groupId: integer('group_id').references(() => groups.id), // Link to groups table
+    channel: text('channel'), // Legacy support or specific channel categorization
     isRead: boolean('is_read').default(false),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -109,7 +128,25 @@ export const usersRelations = relations(users, ({ many }) => ({
     history: many(videoHistory),
     sentMessages: many(messages, { relationName: 'sender' }),
     receivedMessages: many(messages, { relationName: 'receiver' }),
+    groupMemberships: many(groupMembers),
 }));
+
+export const groupsRelations = relations(groups, ({ many }) => ({
+    members: many(groupMembers),
+    messages: many(messages),
+}));
+
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+    group: one(groups, {
+        fields: [groupMembers.groupId],
+        references: [groups.id],
+    }),
+    user: one(users, {
+        fields: [groupMembers.userId],
+        references: [users.id],
+    }),
+}));
+
 
 export const videosRelations = relations(videos, ({ one, many }) => ({
     creator: one(users, {
@@ -146,5 +183,9 @@ export const messagesRelations = relations(messages, ({ one }) => ({
         fields: [messages.receiverId],
         references: [users.id],
         relationName: 'receiver',
+    }),
+    group: one(groups, {
+        fields: [messages.groupId],
+        references: [groups.id],
     }),
 }));

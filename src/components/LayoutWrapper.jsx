@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import ChatWidget from "@/components/chat/ChatWidget";
+import FeatureModal from "@/components/FeatureModal";
 import { useEffect } from "react";
 
 export default function LayoutWrapper({ children }) {
@@ -69,6 +70,7 @@ export default function LayoutWrapper({ children }) {
                 {children}
             </main>
             <ChatWidget />
+            <FeatureModal />
         </div>
     );
 }

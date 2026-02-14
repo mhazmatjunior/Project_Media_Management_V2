@@ -7,21 +7,18 @@ import { pusherClient } from "@/lib/pusher";
 import { getSession } from "@/lib/auth"; // Assume this gets client-side session or we pass it
 import styles from "./ChatWidget.module.css";
 
-const GROUPS = [
-    { id: 'main', name: 'Main Team' },
-    { id: 'research', name: 'Research Team' },
-    { id: 'writer', name: 'Writer Team' },
-    { id: 'speaker', name: 'Speaker Team' },
-    { id: 'graphic', name: 'Graphic Team' },
-];
+// GROUPS removed - fetching dynamically
+
 
 const ChatWidget = () => {
     const { isOpen, toggleChat, activeChat, setActiveChat, setTotalUnread } = useChat();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [users, setUsers] = useState([]); // List of users for DMs
+    const [groups, setGroups] = useState([]); // Dynamic groups list
     const [currentUser, setCurrentUser] = useState(null);
     const [unread, setUnread] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     // Sync total unread count to context for Header
     useEffect(() => {
@@ -50,6 +47,7 @@ const ChatWidget = () => {
         const user = getSession();
         if (user) setCurrentUser(user);
         fetchUsers();
+        fetchGroups();
     }, []);
 
     const fetchUsers = async () => {
@@ -63,6 +61,16 @@ const ChatWidget = () => {
         } catch (e) { console.error("Failed to fetch users", e) }
     };
 
+    const fetchGroups = async () => {
+        try {
+            const res = await fetch('/api/chat/groups');
+            if (res.ok) {
+                const data = await res.json();
+                setGroups(data);
+            }
+        } catch (e) { console.error("Failed to fetch groups", e) }
+    };
+
     const fetchUnread = async () => {
         if (!currentUser) return;
         try {
@@ -74,10 +82,21 @@ const ChatWidget = () => {
         } catch (e) { console.error("Failed to fetch unread", e) }
     };
 
+    const markAsRead = async (chat) => {
+        if (!chat) return;
+        try {
+            await fetch('/api/chat/read', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: chat.type, id: chat.id })
+            });
+        } catch (e) { console.error("Failed to mark as read", e) }
+    };
+
     // Global Listener (Groups + DM Notifications)
-    // Runs once on mount (or user change), DOES NOT re-subscribe on activeChat change
+    // Runs once on mount (or user/groups change), DOES NOT re-subscribe on activeChat change
     useEffect(() => {
-        if (!currentUser) return;
+        if (!currentUser || groups.length === 0) return;
 
         if (!pusherClient) {
             console.error("PUSHER CLIENT NOT INITIALIZED. Check NEXT_PUBLIC_PUSHER_KEY");
@@ -111,15 +130,14 @@ const ChatWidget = () => {
             if (!isCurrentChat) {
                 setUnread(prev => ({ ...prev, [`dm-${data.senderId}`]: true }));
             } else {
-                // If it IS current chat, IGNORE it here. 
-                // The Specific Listener (below) will handle the append. 
-                // This prevents duplicates.
+                // If it IS current chat, mark as read
+                markAsRead({ type: 'dm', id: data.senderId });
             }
         });
         subscriptions.push(userChannelName);
 
         // 2. Group Channels (Notifications AND Messages)
-        GROUPS.forEach(g => {
+        groups.forEach(g => {
             const groupChannelName = `chat-group-${g.id}`;
             const groupChannel = pusherClient.subscribe(groupChannelName);
             groupChannel.bind('new-message', (data) => {
@@ -133,6 +151,7 @@ const ChatWidget = () => {
                 } else {
                     // For Groups, we rely ONLY on this global listener
                     setMessages(prev => [...prev, data]);
+                    markAsRead({ type: 'group', id: g.id });
                     scrollToBottom();
                 }
             });
@@ -142,11 +161,15 @@ const ChatWidget = () => {
         return () => {
             subscriptions.forEach(ch => pusherClient.unsubscribe(ch));
         };
-    }, [currentUser]); // Depend only on currentUser
+    }, [currentUser, groups]); // Depend on groups too now
 
     // Fetch History when Chat Changes
     useEffect(() => {
         if (!activeChat || !currentUser) return;
+
+        // Start loading
+        setIsLoading(true);
+        // setMessages([]); // Optional: Clear previous messages instantly to avoid flicker
 
         // Clear unread
         const key = activeChat.type === 'group' ? `group-${activeChat.id}` : `dm-${activeChat.id}`;
@@ -157,6 +180,9 @@ const ChatWidget = () => {
         });
 
         const fetchHistory = async () => {
+            // Mark as read immediately on open
+            markAsRead(activeChat);
+
             let url = `/api/chat/history?`;
             if (activeChat.type === 'group') {
                 url += `channel=${activeChat.id}`;
@@ -170,6 +196,7 @@ const ChatWidget = () => {
                 setMessages(data);
                 scrollToBottom();
             }
+            setIsLoading(false); // Stop loading
         };
 
         fetchHistory();
@@ -189,6 +216,7 @@ const ChatWidget = () => {
         channel.bind('new-message', (data) => {
             if (data.senderId === currentUser.id) return;
             setMessages((prev) => [...prev, data]);
+            markAsRead({ type: 'dm', id: data.senderId });
             scrollToBottom();
         });
 
@@ -269,7 +297,7 @@ const ChatWidget = () => {
                     // Connection List
                     <div className={styles.listContainer}>
                         <div className={styles.sectionHeader}>Groups</div>
-                        {GROUPS.map(g => (
+                        {groups.map(g => (
                             <div key={g.id} className={styles.listItem} onClick={() => setActiveChat({ type: 'group', ...g })}>
                                 <div className={styles.iconBg}><Hash size={16} /></div>
                                 <span>{g.name}</span>
@@ -292,20 +320,27 @@ const ChatWidget = () => {
                 ) : (
                     // Chat Window
                     <div className={styles.chatWindow}>
-                        <div className={styles.messagesList}>
-                            {messages.map((msg, idx) => {
-                                const isMe = msg.senderId === currentUser?.id;
-                                return (
-                                    <div key={idx} className={`${styles.messageBubble} ${isMe ? styles.me : styles.them}`}>
-                                        <div className={styles.bubbleContent}>
-                                            {!isMe && activeChat.type === 'group' && <div className={styles.senderName}>{msg.senderName}</div>}
-                                            {msg.content}
+                        {isLoading ? (
+                            <div className={styles.loadingContainer}>
+                                <div className={styles.spinner} />
+                                <span style={{ marginTop: '10px', fontSize: '12px', color: '#888' }}>Loading chat...</span>
+                            </div>
+                        ) : (
+                            <div className={styles.messagesList}>
+                                {messages.map((msg, idx) => {
+                                    const isMe = msg.senderId === currentUser?.id;
+                                    return (
+                                        <div key={idx} className={`${styles.messageBubble} ${isMe ? styles.me : styles.them}`}>
+                                            <div className={styles.bubbleContent}>
+                                                {!isMe && activeChat.type === 'group' && <div className={styles.senderName}>{msg.senderName}</div>}
+                                                {msg.content}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                            <div ref={messagesEndRef} />
-                        </div>
+                                    );
+                                })}
+                                <div ref={messagesEndRef} />
+                            </div>
+                        )}
                         <form onSubmit={handleSend} className={styles.inputArea}>
                             <input
                                 type="text"
