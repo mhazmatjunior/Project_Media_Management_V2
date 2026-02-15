@@ -1,27 +1,28 @@
 import { useState, useEffect } from "react";
-import { Clock, Plus, X, Calendar, Pencil, Trash2 } from "lucide-react";
+import { Timer, Plus, X, Calendar, Pencil, Trash2 } from "lucide-react";
 import { getSession } from "@/lib/auth";
-import styles from "./ReminderCard.module.css";
+import styles from "./DeadlineCard.module.css";
 
-const ReminderCard = () => {
-    const [reminders, setReminders] = useState([]);
+const DeadlineCard = () => {
+    const [deadlines, setDeadlines] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState(null);
     const [deleteConfirmationId, setDeleteConfirmationId] = useState(null);
-    const [allUsers, setAllUsers] = useState([]); // Buffer for name resolution
-    const [filteredUsers, setFilteredUsers] = useState([]); // Available for selection
+    const [allUsers, setAllUsers] = useState([]); // Buffer for all users to resolve names
+    const [filteredUsers, setFilteredUsers] = useState([]); // Users available for selection
     const [formData, setFormData] = useState({
         title: "",
         datetime: "",
         audienceType: "all",
-        targetUsers: [], // Array of user IDs
+        targetUsers: [],
+        description: "",
     });
 
     const session = getSession();
 
     useEffect(() => {
-        fetchReminders();
+        fetchDeadlines();
         fetchUsers();
     }, []);
 
@@ -59,15 +60,15 @@ const ReminderCard = () => {
         }
     };
 
-    const fetchReminders = async () => {
+    const fetchDeadlines = async () => {
         try {
-            const res = await fetch('/api/reminders');
+            const res = await fetch('/api/deadlines');
             if (res.ok) {
                 const data = await res.json();
-                setReminders(data);
+                setDeadlines(data);
             }
         } catch (error) {
-            console.error("Failed to fetch reminders", error);
+            console.error("Failed to fetch deadlines", error);
         } finally {
             setLoading(false);
         }
@@ -78,7 +79,7 @@ const ReminderCard = () => {
         if (!formData.title || !formData.datetime) return;
 
         try {
-            const url = editingId ? `/api/reminders/${editingId}` : '/api/reminders';
+            const url = editingId ? `/api/deadlines/${editingId}` : '/api/deadlines';
             const method = editingId ? 'PUT' : 'POST';
 
             const res = await fetch(url, {
@@ -91,11 +92,11 @@ const ReminderCard = () => {
             });
 
             if (res.ok) {
-                fetchReminders();
+                fetchDeadlines();
                 resetForm();
             }
         } catch (error) {
-            console.error("Failed to save reminder", error);
+            console.error("Failed to save deadline", error);
         }
     };
 
@@ -107,31 +108,31 @@ const ReminderCard = () => {
         if (!deleteConfirmationId) return;
 
         try {
-            const res = await fetch(`/api/reminders/${deleteConfirmationId}`, {
+            const res = await fetch(`/api/deadlines/${deleteConfirmationId}`, {
                 method: 'DELETE',
             });
 
             if (res.ok) {
-                fetchReminders();
+                fetchDeadlines();
                 setDeleteConfirmationId(null);
             }
         } catch (error) {
-            console.error("Failed to delete reminder", error);
+            console.error("Failed to delete deadline", error);
         }
     };
 
-    const handleEdit = (reminder) => {
-        // Format datetime for datetime-local input (YYYY-MM-DDTHH:mm)
-        const date = new Date(reminder.datetime);
+    const handleEdit = (deadline) => {
+        const date = new Date(deadline.datetime);
         const formattedDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
         setFormData({
-            title: reminder.title,
+            title: deadline.title,
             datetime: formattedDate,
-            audienceType: reminder.audienceType,
-            targetUsers: reminder.targetUsers ? JSON.parse(reminder.targetUsers) : [],
+            audienceType: deadline.audienceType,
+            targetUsers: deadline.targetUsers ? JSON.parse(deadline.targetUsers) : [],
+            description: deadline.description || "",
         });
-        setEditingId(reminder.id);
+        setEditingId(deadline.id);
         setIsAdding(true);
     };
 
@@ -149,14 +150,14 @@ const ReminderCard = () => {
     const resetForm = () => {
         setIsAdding(false);
         setEditingId(null);
-        setFormData({ title: "", datetime: "", audienceType: "all", targetUsers: [] });
+        setFormData({ title: "", datetime: "", audienceType: "all", targetUsers: [], description: "" });
     };
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
         return {
-            day: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }), // "Thursday, Feb 6"
-            time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) // "02:00 PM"
+            day: date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+            time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
         };
     };
 
@@ -184,13 +185,15 @@ const ReminderCard = () => {
     return (
         <div className={`${styles.card} ${isAdding ? styles.cardAdding : ''}`}>
             <div className={styles.header}>
-                <h3 className={styles.title}>{editingId ? 'Edit Reminder' : 'Reminders'}</h3>
-                <button
-                    className={styles.addButton}
-                    onClick={() => isAdding ? resetForm() : setIsAdding(true)}
-                >
-                    {isAdding ? <X size={18} /> : <Plus size={18} />}
-                </button>
+                <h3 className={styles.title}>{editingId ? 'Edit Deadline' : 'Deadlines'}</h3>
+                {session?.role !== 'member' && (
+                    <button
+                        className={styles.addButton}
+                        onClick={() => isAdding ? resetForm() : setIsAdding(true)}
+                    >
+                        {isAdding ? <X size={18} /> : <Plus size={18} />}
+                    </button>
+                )}
             </div>
 
             <div className={styles.content}>
@@ -198,11 +201,17 @@ const ReminderCard = () => {
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <input
                             type="text"
-                            placeholder="Reminder title"
+                            placeholder="Deadline title"
                             className={styles.input}
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             required
+                        />
+                        <textarea
+                            placeholder="Description (optional)"
+                            className={styles.textarea}
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                         <div className={styles.row}>
                             <input
@@ -267,48 +276,51 @@ const ReminderCard = () => {
                             </div>
                         )}
                         <button type="submit" className={styles.submitButton}>
-                            {editingId ? 'Update Reminder' : 'Add Reminder'}
+                            {editingId ? 'Update Deadline' : 'Add Deadline'}
                         </button>
                     </form>
                 ) : (
                     <div className={styles.list}>
                         {loading ? (
                             <p className={styles.empty}>Loading...</p>
-                        ) : reminders.length === 0 ? (
-                            <p className={styles.empty}>No reminders yet</p>
+                        ) : deadlines.length === 0 ? (
+                            <p className={styles.empty}>No deadlines yet</p>
                         ) : (
-                            reminders.map((reminder) => {
-                                const { day, time } = formatDate(reminder.datetime);
-                                const targetNames = getTargetNames(reminder.targetUsers);
-                                const isCreator = session?.id && reminder.createdBy === session.id;
+                            deadlines.map((deadline) => {
+                                const { day, time } = formatDate(deadline.datetime);
+                                const targetNames = getTargetNames(deadline.targetUsers);
+                                const isCreator = session?.id && deadline.createdBy === session.id;
 
                                 return (
-                                    <div key={reminder.id} className={styles.reminderItem}>
+                                    <div key={deadline.id} className={styles.deadlineItem}>
                                         <div className={styles.info}>
-                                            <h4 className={styles.meetingTitle}>{reminder.title}</h4>
+                                            <h4 className={styles.deadlineTitle}>{deadline.title}</h4>
+                                            {deadline.description && (
+                                                <p className={styles.description}>{deadline.description}</p>
+                                            )}
                                             <div className={styles.timeInfo}>
                                                 <span className={styles.date}>
-                                                    {isToday(reminder.datetime) ? 'Today' : day}
+                                                    {isToday(deadline.datetime) ? 'Today' : day}
                                                 </span>
                                                 <span className={styles.dot}>•</span>
                                                 <span className={styles.time}>{time}</span>
                                             </div>
                                             <div className={styles.itemFooter}>
                                                 <div className={styles.audienceBadge}>
-                                                    For: {reminder.audienceType === 'specific' ? targetNames : reminder.audienceType}
+                                                    For: {deadline.audienceType === 'specific' ? targetNames : deadline.audienceType}
                                                 </div>
                                                 {isCreator && (
                                                     <div className={styles.actions}>
                                                         <button
                                                             className={styles.actionRaw}
-                                                            onClick={() => handleEdit(reminder)}
+                                                            onClick={() => handleEdit(deadline)}
                                                             title="Edit"
                                                         >
                                                             <Pencil size={14} />
                                                         </button>
                                                         <button
                                                             className={styles.actionRaw}
-                                                            onClick={() => handleDeleteClick(reminder.id)}
+                                                            onClick={() => handleDeleteClick(deadline.id)}
                                                             title="Delete"
                                                         >
                                                             <Trash2 size={14} />
@@ -325,33 +337,30 @@ const ReminderCard = () => {
                 )}
             </div>
 
-            {/* Custom Delete Confirmation Modal */}
-            {
-                deleteConfirmationId && (
-                    <div className={styles.modalOverlay}>
-                        <div className={styles.modalContent}>
-                            <h4 className={styles.modalTitle}>Delete Reminder?</h4>
-                            <p className={styles.modalText}>This action cannot be undone.</p>
-                            <div className={styles.modalActions}>
-                                <button
-                                    className={styles.cancelButton}
-                                    onClick={() => setDeleteConfirmationId(null)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className={styles.deleteButton}
-                                    onClick={confirmDelete}
-                                >
-                                    Delete
-                                </button>
-                            </div>
+            {deleteConfirmationId && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modalContent}>
+                        <h4 className={styles.modalTitle}>Delete Deadline?</h4>
+                        <p className={styles.modalText}>This action cannot be undone.</p>
+                        <div className={styles.modalActions}>
+                            <button
+                                className={styles.cancelButton}
+                                onClick={() => setDeleteConfirmationId(null)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className={styles.deleteButton}
+                                onClick={confirmDelete}
+                            >
+                                Delete
+                            </button>
                         </div>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     );
 };
 
-export default ReminderCard;
+export default DeadlineCard;

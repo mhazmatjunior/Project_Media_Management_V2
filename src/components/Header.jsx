@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mail, Bell, X, Menu } from "lucide-react";
+import { Mail, Bell, X, Menu, Timer } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { useChat } from "@/context/ChatContext";
 import { useSidebar } from "@/context/SidebarContext";
+import DeadlineCard from "./DeadlineCard";
 import styles from "./Header.module.css";
 
 const Header = ({ title }) => {
@@ -13,7 +14,12 @@ const Header = ({ title }) => {
         email: ""
     });
     const [notifications, setNotifications] = useState([]);
+    const [deadlines, setDeadlines] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showDeadlinesDropdown, setShowDeadlinesDropdown] = useState(false);
+    const [isManageDeadlinesOpen, setIsManageDeadlinesOpen] = useState(false);
+    const [isUrgent, setIsUrgent] = useState(false);
     const { toggleChat, totalUnread } = useChat();
     const { isMobile, toggleMobileSidebar } = useSidebar();
 
@@ -22,10 +28,22 @@ const Header = ({ title }) => {
         if (sessionUser) {
             setUser(sessionUser);
             fetchNotifications();
+            fetchDeadlines();
+            fetchUsersServer();
         }
     }, []);
 
-    // ... (fetchNotifications, formatDate, etc - kept same)
+    const fetchUsersServer = async () => {
+        try {
+            const res = await fetch('/api/users');
+            if (res.ok) {
+                const data = await res.json();
+                setAllUsers(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch users", error);
+        }
+    };
 
     const fetchNotifications = async () => {
         try {
@@ -37,6 +55,32 @@ const Header = ({ title }) => {
         } catch (error) {
             console.error("Failed to fetch notifications", error);
         }
+    };
+
+    const fetchDeadlines = async () => {
+        try {
+            const res = await fetch('/api/deadlines/my');
+            if (res.ok) {
+                const data = await res.json();
+                setDeadlines(data);
+                checkDeadlinesUrgency(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch deadlines", error);
+        }
+    };
+
+    const checkDeadlinesUrgency = (deadlineList) => {
+        const now = new Date();
+        const sixHoursInMs = 6 * 60 * 60 * 1000;
+
+        const urgent = deadlineList.some(d => {
+            const deadlineTime = new Date(d.datetime);
+            const diff = deadlineTime - now;
+            return diff > 0 && diff <= sixHoursInMs;
+        });
+
+        setIsUrgent(urgent);
     };
 
     // DEBUG: Connection Status
@@ -71,6 +115,19 @@ const Header = ({ title }) => {
             date.getFullYear() === today.getFullYear();
     };
 
+    const getTargetNames = (targetUsersJson) => {
+        if (!targetUsersJson) return '';
+        try {
+            const targetIds = JSON.parse(targetUsersJson).map(String);
+            return allUsers
+                .filter(u => targetIds.includes(String(u.id)))
+                .map(u => u.name)
+                .join(', ');
+        } catch (e) {
+            return '';
+        }
+    };
+
     return (
         <header className={styles.header}>
             <div className={styles.headerTitle}>
@@ -98,17 +155,27 @@ const Header = ({ title }) => {
             </div>
 
             <div className={styles.actions}>
-                <button className={styles.iconButton} onClick={toggleChat}>
-                    <Mail size={20} />
-                    {totalUnread > 0 && <span className={styles.notificationDot} />}
-                </button>
-
                 <button
                     className={styles.iconButton}
                     onClick={() => setShowDropdown(true)}
+                    title="Reminders"
                 >
                     <Bell size={20} />
                     {notifications.length > 0 && <span className={styles.notificationDot} />}
+                </button>
+
+                <button
+                    className={`${styles.iconButton} ${isUrgent ? styles.blinking : ''}`}
+                    onClick={() => setShowDeadlinesDropdown(true)}
+                    title="Deadlines"
+                >
+                    <Timer size={20} />
+                    {deadlines.length > 0 && <span className={styles.notificationDot} />}
+                </button>
+
+                <button className={styles.iconButton} onClick={toggleChat} title="Messages">
+                    <Mail size={20} />
+                    {totalUnread > 0 && <span className={styles.notificationDot} />}
                 </button>
 
                 {showDropdown && (
@@ -124,6 +191,7 @@ const Header = ({ title }) => {
                                 {notifications.length > 0 ? (
                                     notifications.map(notif => {
                                         const { day, time } = formatDate(notif.datetime);
+                                        const targetNames = getTargetNames(notif.targetUsers);
                                         return (
                                             <div key={notif.id} className={styles.notificationItem}>
                                                 <h4 className={styles.meetingTitle}>{notif.title}</h4>
@@ -136,7 +204,7 @@ const Header = ({ title }) => {
                                                 </div>
                                                 <div className={styles.itemFooter}>
                                                     <div className={styles.audienceBadge}>
-                                                        For: {notif.audienceType}
+                                                        For: {notif.audienceType === 'specific' ? targetNames : notif.audienceType}
                                                     </div>
                                                 </div>
                                             </div>
@@ -146,6 +214,94 @@ const Header = ({ title }) => {
                                     <div className={styles.emptyState}>No reminders</div>
                                 )}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {showDeadlinesDropdown && (
+                    <div className={styles.modalOverlay} onClick={() => setShowDeadlinesDropdown(false)}>
+                        <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                            <div className={styles.modalHeader}>
+                                <h3 className={styles.modalTitle}>Deadlines</h3>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        onClick={() => {
+                                            setShowDeadlinesDropdown(false);
+                                            setIsManageDeadlinesOpen(true);
+                                        }}
+                                        style={{
+                                            padding: '4px 8px',
+                                            fontSize: '11px',
+                                            background: 'var(--primary-color)',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            color: 'white',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Add/Manage
+                                    </button>
+                                    <button className={styles.closeButton} onClick={() => setShowDeadlinesDropdown(false)}>
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className={styles.notificationList}>
+                                {deadlines.length > 0 ? (
+                                    deadlines.map(deadline => {
+                                        const { day, time } = formatDate(deadline.datetime);
+                                        const deadlineTime = new Date(deadline.datetime);
+                                        const now = new Date();
+                                        const diff = deadlineTime - now;
+                                        const isWithin6Hours = diff > 0 && diff <= 6 * 60 * 60 * 1000;
+                                        const targetNames = getTargetNames(deadline.targetUsers);
+
+                                        return (
+                                            <div key={deadline.id} className={`${styles.notificationItem} ${isWithin6Hours ? styles.urgentDeadline : ''}`}>
+                                                <h4 className={styles.meetingTitle}>{deadline.title}</h4>
+                                                {deadline.description && (
+                                                    <p className={styles.deadlineDesc}>{deadline.description}</p>
+                                                )}
+                                                <div className={styles.timeInfo}>
+                                                    <span className={styles.date}>
+                                                        {isToday(deadline.datetime) ? 'Today' : day}
+                                                    </span>
+                                                    <span className={styles.dot} style={isWithin6Hours ? { color: '#EF4444' } : {}}>•</span>
+                                                    <span className={styles.time}>{time}</span>
+                                                </div>
+                                                <div className={styles.itemFooter}>
+                                                    <div className={styles.audienceBadge}>
+                                                        For: {deadline.audienceType === 'specific' ? targetNames : deadline.audienceType}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className={styles.emptyState}>No deadlines yet</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {isManageDeadlinesOpen && (
+                    <div className={styles.modalOverlay} onClick={() => {
+                        setIsManageDeadlinesOpen(false);
+                        fetchDeadlines(); // Refresh on close
+                    }}>
+                        <div
+                            style={{
+                                width: '500px',
+                                maxHeight: '90vh',
+                                background: '#121212',
+                                borderRadius: '12px',
+                                overflow: 'hidden',
+                                border: '1px solid #333'
+                            }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <DeadlineCard />
                         </div>
                     </div>
                 )}

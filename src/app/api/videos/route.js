@@ -39,6 +39,9 @@ export async function GET() {
             assignedTo: video.assignedTo,
             assigneeName: video.assigneeName,
             departmentEnteredAt: video.departmentEnteredAt,
+            forwardedAt: video.forwardedAt,
+            previousDepartment: video.previousDepartment,
+            takebackRequested: video.takebackRequested,
             departmentTimestamp: video.createdAt, // Fallback
         }));
 
@@ -105,6 +108,7 @@ function mapDbStatusToApp(dbStatus) {
         'pending': 'pending',
         'in_progress': 'running',
         'department_completed': 'department_completed',
+        'waiting_approval': 'waiting_approval',
         'completed': 'ended',
         'archived': 'archived',
     };
@@ -131,6 +135,7 @@ function calculateProgress(status) {
         'pending': 0,
         'in_progress': 50,
         'department_completed': 75,
+        'waiting_approval': 90,
         'completed': 100,
     };
     return progressMap[status] || 0;

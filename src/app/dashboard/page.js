@@ -76,7 +76,7 @@ export default function DashboardPage() {
 
   // Filter lists based on status
   const endedVideos = videos.filter(v => v.status === 'ended');
-  const runningVideos = videos.filter(v => v.status === 'running' || v.status === 'department_completed');
+  const runningVideos = videos.filter(v => v.status === 'running' || v.status === 'department_completed' || v.status === 'waiting_approval');
   const pendingVideos = videos.filter(v => v.status === 'pending');
 
   const totalCount = videos.length;

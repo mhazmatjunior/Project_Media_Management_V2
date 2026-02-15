@@ -9,6 +9,8 @@ import TimeTracker from "@/components/TimeTracker";
 import VideoDetailsModal from "@/components/VideoDetailsModal";
 import FinishTaskModal from "@/components/FinishTaskModal";
 import RollbackModal from "@/components/RollbackModal";
+import ConfirmActionModal from "@/components/ConfirmActionModal";
+import { CheckCircle2, Undo2, ArrowLeft, CheckCircle } from 'lucide-react';
 import styles from "@/styles/SharedLayout.module.css";
 
 export default function GraphicsPage() {
@@ -22,6 +24,10 @@ export default function GraphicsPage() {
     const [viewingVideo, setViewingVideo] = useState(null);
     const [videoToFinish, setVideoToFinish] = useState(null);
     const [videoToRollback, setVideoToRollback] = useState(null);
+    const [videoToFinishProject, setVideoToFinishProject] = useState(null);
+    const [videoToRecall, setVideoToRecall] = useState(null);
+    const [videoToReturn, setVideoToReturn] = useState(null);
+    const [videoToApprove, setVideoToApprove] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -96,9 +102,12 @@ export default function GraphicsPage() {
             setGraphicsVideos(graphics);
 
             // Fetch completed/review tasks for this department
+            // AND recently forwarded tasks (last 1 hour) - ONLY for main_team
+            const now = new Date();
+            const isMainTeam = userRole === 'main_team';
             const completed = data.filter(v =>
-                v.currentDepartment === 'graphics' &&
-                v.status === 'department_completed'
+                (v.currentDepartment === 'graphics' && (v.status === 'department_completed' || v.status === 'waiting_approval')) ||
+                (isMainTeam && v.previousDepartment === 'graphics' && v.forwardedAt && (now - new Date(v.forwardedAt)) < 3600000)
             );
             setCompletedGraphicsVideos(completed);
 
@@ -132,9 +141,10 @@ export default function GraphicsPage() {
         }
     };
 
-    const handleFinish = async (videoId) => {
+    const handleConfirmFinishProject = async () => {
+        if (!videoToFinishProject) return;
         try {
-            const response = await fetch(`/api/videos/${videoId}`, {
+            const response = await fetch(`/api/videos/${videoToFinishProject.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -145,17 +155,33 @@ export default function GraphicsPage() {
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to finish video');
-            }
+            if (!response.ok) throw new Error('Failed to finish video');
 
             await fetchGraphicsVideos();
-            if (selectedTask?.id === videoId) {
-                setSelectedTask(null);
-            }
+            if (selectedTask?.id === videoToFinishProject.id) setSelectedTask(null);
+            setVideoToFinishProject(null);
         } catch (error) {
             console.error('Error finishing video:', error);
-            alert('Failed to finish video. Please try again.');
+            alert('Failed to finish video');
+        }
+    };
+
+    const handleConfirmApprove = async () => {
+        if (!videoToApprove) return;
+
+        try {
+            const response = await fetch(`/api/videos/${videoToApprove.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'waiting_approval' }),
+            });
+            if (!response.ok) throw new Error('Failed to approve task');
+
+            await fetchGraphicsVideos();
+            setVideoToApprove(null);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to approve task');
         }
     };
 
@@ -206,6 +232,40 @@ export default function GraphicsPage() {
         }
     };
 
+    const handleConfirmRecall = async () => {
+        if (!videoToRecall) return;
+        try {
+            const response = await fetch(`/api/videos/${videoToRecall.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'request_takeback' }),
+            });
+            if (!response.ok) throw new Error('Failed to request takeback');
+            await fetchGraphicsVideos();
+            setVideoToRecall(null);
+        } catch (error) {
+            console.error('Error requesting takeback:', error);
+            alert('Failed to request takeback');
+        }
+    };
+
+    const handleConfirmReturnForReal = async () => {
+        if (!videoToReturn) return;
+        try {
+            const response = await fetch(`/api/videos/${videoToReturn.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'confirm_takeback' }),
+            });
+            if (!response.ok) throw new Error('Failed to return task');
+            await fetchGraphicsVideos();
+            setVideoToReturn(null);
+        } catch (error) {
+            console.error('Error returning task:', error);
+            alert('Failed to return task');
+        }
+    };
+
     const handleTaskClick = (project) => {
         setViewingVideo(project);
     };
@@ -239,7 +299,7 @@ export default function GraphicsPage() {
                             title={userRole === 'member' ? "Assigned Tasks" : "Active Tasks"}
                             projects={graphicsVideos}
                             loading={loading}
-                            showFinishButton={userRole === 'member'} // Only member marks as Done here
+                            showFinishButton={userRole === 'member'}
                             onFinishClick={(id) => {
                                 const video = graphicsVideos.find(v => v.id === id);
                                 setVideoToFinish(video);
@@ -247,22 +307,42 @@ export default function GraphicsPage() {
                             finishButtonText="Done"
                             members={members}
                             currentUserId={currentUserId}
+                            userRole={userRole}
                             onAssign={userRole === 'member' ? null : handleAssign}
                             onSelect={handleTaskClick}
                             onTimeClick={handleTimeClick}
                             selectedTaskId={selectedTask?.id}
+                            onSendBackClick={(id) => {
+                                const video = graphicsVideos.find(v => v.id === id);
+                                setVideoToReturn(video);
+                            }}
+                            departmentName="graphics"
                         />
                         <ProjectList
                             title="Completed Tasks"
                             projects={loading ? [] : completedGraphicsVideos}
                             showDepartmentBadge={false}
-                            showFinishButton={userRole !== 'member'} // Lead can Finish (End) the video
-                            onFinishClick={handleFinish}
+                            showFinishButton={userRole !== 'member'}
+                            onFinishClick={(id) => {
+                                const video = completedGraphicsVideos.find(v => v.id === id);
+                                if (userRole === 'main_team') {
+                                    setVideoToFinishProject(video);
+                                } else if (userRole === 'team_lead' && video.status === 'department_completed') {
+                                    setVideoToApprove(video);
+                                }
+                            }}
+                            finishButtonText={userRole === 'main_team' ? "Finish Project" : "Mark as Done"}
                             showRollbackButton={userRole !== 'member'}
                             onRollbackClick={handleRollback}
                             onSelect={handleTaskClick}
                             onTimeClick={handleTimeClick}
                             selectedTaskId={selectedTask?.id}
+                            userRole={userRole}
+                            onTakebackClick={(id) => {
+                                const video = completedGraphicsVideos.find(v => v.id === id);
+                                setVideoToRecall(video);
+                            }}
+                            departmentName="graphics"
                         />
                     </div>
                     <TimeTracker selectedTask={selectedTask} />
@@ -286,6 +366,49 @@ export default function GraphicsPage() {
                 onClose={() => setVideoToRollback(null)}
                 onConfirm={handleConfirmRollback}
                 title={videoToRollback?.name}
+            />
+
+            {/* Confirmation Modals */}
+            <ConfirmActionModal
+                isOpen={!!videoToFinishProject}
+                onClose={() => setVideoToFinishProject(null)}
+                onConfirm={handleConfirmFinishProject}
+                title="Finalize Project"
+                description={`Are you sure you want to finalize "${videoToFinishProject?.name}" and move it to Completed Videos?`}
+                confirmText="Finish Project"
+                icon={CheckCircle2}
+            />
+
+            <ConfirmActionModal
+                isOpen={!!videoToRecall}
+                onClose={() => setVideoToRecall(null)}
+                onConfirm={handleConfirmRecall}
+                title="Recall Task"
+                description={`Request to take back "${videoToRecall?.name}" from the next department?`}
+                confirmText="Recall Task"
+                variant="warning"
+                icon={Undo2}
+            />
+
+            <ConfirmActionModal
+                isOpen={!!videoToReturn}
+                onClose={() => setVideoToReturn(null)}
+                onConfirm={handleConfirmReturnForReal}
+                title="Return Task"
+                description={`Are you sure you want to return "${videoToReturn?.name}" to the previous department?`}
+                confirmText="Return Task"
+                variant="danger"
+                icon={ArrowLeft}
+            />
+
+            <ConfirmActionModal
+                isOpen={!!videoToApprove}
+                onClose={() => setVideoToApprove(null)}
+                onConfirm={handleConfirmApprove}
+                title="Approve Task"
+                description={`Mark "${videoToApprove?.name}" as done for the Main Team's review?`}
+                confirmText="Approve & Mark Done"
+                icon={CheckCircle}
             />
         </div>
     );

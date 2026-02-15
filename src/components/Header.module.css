@@ -68,6 +68,26 @@
     border: 2px solid #121212;
 }
 
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+        color: #EF4444;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.blinking {
+    animation: blink 1s infinite ease-in-out;
+    color: #EF4444 !important;
+}
+
 .profile {
     display: flex;
     align-items: center;
@@ -257,6 +277,18 @@
     color: var(--text-secondary);
     font-size: 14px;
     font-style: italic;
+}
+
+.deadlineDesc {
+    font-size: 12px;
+    color: #888;
+    margin: 4px 0 8px 0;
+    line-height: 1.4;
+}
+
+.urgentDeadline {
+    border-left: 3px solid #EF4444;
+    background: rgba(239, 68, 68, 0.05);
 }
 
 /* Mobile Responsiveness */

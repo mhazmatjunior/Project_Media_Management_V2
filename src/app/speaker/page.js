@@ -9,6 +9,8 @@ import TimeTracker from "@/components/TimeTracker";
 import VideoDetailsModal from "@/components/VideoDetailsModal";
 import FinishTaskModal from "@/components/FinishTaskModal";
 import RollbackModal from "@/components/RollbackModal";
+import ConfirmActionModal from "@/components/ConfirmActionModal";
+import { ArrowRight, Undo2, ArrowLeft, CheckCircle } from 'lucide-react';
 import styles from "@/styles/SharedLayout.module.css";
 
 export default function SpeakerPage() {
@@ -22,6 +24,10 @@ export default function SpeakerPage() {
     const [viewingVideo, setViewingVideo] = useState(null);
     const [videoToFinish, setVideoToFinish] = useState(null);
     const [videoToRollback, setVideoToRollback] = useState(null);
+    const [videoToForward, setVideoToForward] = useState(null);
+    const [videoToRecall, setVideoToRecall] = useState(null);
+    const [videoToReturn, setVideoToReturn] = useState(null);
+    const [videoToApprove, setVideoToApprove] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -97,9 +103,12 @@ export default function SpeakerPage() {
             setSpeakerVideos(speaker);
 
             // Fetch completed/review tasks for this department
+            // AND recently forwarded tasks (last 1 hour) - ONLY for main_team
+            const now = new Date();
+            const isMainTeam = userRole === 'main_team';
             const completed = data.filter(v =>
-                v.currentDepartment === 'speaker' &&
-                v.status === 'department_completed'
+                (v.currentDepartment === 'speaker' && (v.status === 'department_completed' || v.status === 'waiting_approval')) ||
+                (isMainTeam && v.previousDepartment === 'speaker' && v.forwardedAt && (now - new Date(v.forwardedAt)) < 3600000)
             );
             setCompletedSpeakerVideos(completed);
 
@@ -133,31 +142,48 @@ export default function SpeakerPage() {
         }
     };
 
-    const handleForward = async (videoId) => {
+    const handleConfirmForward = async () => {
+        if (!videoToForward) return;
         try {
-            const response = await fetch(`/api/videos/${videoId}`, {
+            const response = await fetch(`/api/videos/${videoToForward.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     currentDepartment: 'video',
-                    status: 'running', // Reset to running for next department
+                    status: 'running',
                     assignedTo: null,
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to forward video');
-            }
+            if (!response.ok) throw new Error('Failed to forward video');
 
             await fetchSpeakerVideos();
-            if (selectedTask?.id === videoId) {
-                setSelectedTask(null);
-            }
+            if (selectedTask?.id === videoToForward.id) setSelectedTask(null);
+            setVideoToForward(null);
         } catch (error) {
             console.error('Error forwarding video:', error);
-            alert('Failed to forward video. Please try again.');
+            alert('Failed to forward video');
+        }
+    };
+
+    const handleConfirmApprove = async () => {
+        if (!videoToApprove) return;
+
+        try {
+            const response = await fetch(`/api/videos/${videoToApprove.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'waiting_approval' }),
+            });
+            if (!response.ok) throw new Error('Failed to approve task');
+
+            await fetchSpeakerVideos();
+            setVideoToApprove(null);
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to approve task');
         }
     };
 
@@ -208,6 +234,40 @@ export default function SpeakerPage() {
         }
     };
 
+    const handleConfirmRecall = async () => {
+        if (!videoToRecall) return;
+        try {
+            const response = await fetch(`/api/videos/${videoToRecall.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'request_takeback' }),
+            });
+            if (!response.ok) throw new Error('Failed to request takeback');
+            await fetchSpeakerVideos();
+            setVideoToRecall(null);
+        } catch (error) {
+            console.error('Error requesting takeback:', error);
+            alert('Failed to request takeback');
+        }
+    };
+
+    const handleConfirmReturnForReal = async () => {
+        if (!videoToReturn) return;
+        try {
+            const response = await fetch(`/api/videos/${videoToReturn.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'confirm_takeback' }),
+            });
+            if (!response.ok) throw new Error('Failed to return task');
+            await fetchSpeakerVideos();
+            setVideoToReturn(null);
+        } catch (error) {
+            console.error('Error returning task:', error);
+            alert('Failed to return task');
+        }
+    };
+
     const handleTaskClick = (project) => {
         setViewingVideo(project);
     };
@@ -250,22 +310,45 @@ export default function SpeakerPage() {
                             finishButtonText="Done"
                             members={members}
                             currentUserId={currentUserId}
+                            userRole={userRole}
                             onAssign={userRole === 'member' ? null : handleAssign}
                             onSelect={handleTaskClick}
                             onTimeClick={handleTimeClick}
                             selectedTaskId={selectedTask?.id}
+                            onSendBackClick={(id) => {
+                                const video = speakerVideos.find(v => v.id === id);
+                                setVideoToReturn(video);
+                            }}
+                            departmentName="speaker"
                         />
                         <ProjectList
                             title="Completed Tasks"
                             projects={loading ? [] : completedSpeakerVideos}
                             showDepartmentBadge={false}
-                            showForwardButton={userRole !== 'member'}
-                            onForwardClick={handleForward}
+                            showForwardButton={userRole === 'main_team'}
+                            onForwardClick={(id) => {
+                                const video = completedSpeakerVideos.find(v => v.id === id);
+                                setVideoToForward(video);
+                            }}
+                            showFinishButton={userRole === 'team_lead'}
+                            onFinishClick={(id) => {
+                                const video = completedSpeakerVideos.find(v => v.id === id);
+                                if (video.status === 'department_completed') {
+                                    setVideoToApprove(video);
+                                }
+                            }}
+                            finishButtonText="Mark as Done"
                             showRollbackButton={userRole !== 'member'}
                             onRollbackClick={handleRollback}
                             onSelect={handleTaskClick}
                             onTimeClick={handleTimeClick}
                             selectedTaskId={selectedTask?.id}
+                            userRole={userRole}
+                            onTakebackClick={(id) => {
+                                const video = completedSpeakerVideos.find(v => v.id === id);
+                                setVideoToRecall(video);
+                            }}
+                            departmentName="speaker"
                         />
                     </div>
                     <TimeTracker selectedTask={selectedTask} />
@@ -289,6 +372,49 @@ export default function SpeakerPage() {
                 onClose={() => setVideoToRollback(null)}
                 onConfirm={handleConfirmRollback}
                 title={videoToRollback?.name}
+            />
+
+            {/* Confirmation Modals */}
+            <ConfirmActionModal
+                isOpen={!!videoToForward}
+                onClose={() => setVideoToForward(null)}
+                onConfirm={handleConfirmForward}
+                title="Forward Task"
+                description={`Are you sure you want to forward "${videoToForward?.name}" to the Video department?`}
+                confirmText="Forward Now"
+                icon={ArrowRight}
+            />
+
+            <ConfirmActionModal
+                isOpen={!!videoToRecall}
+                onClose={() => setVideoToRecall(null)}
+                onConfirm={handleConfirmRecall}
+                title="Recall Task"
+                description={`Request to take back "${videoToRecall?.name}" from the next department?`}
+                confirmText="Recall Task"
+                variant="warning"
+                icon={Undo2}
+            />
+
+            <ConfirmActionModal
+                isOpen={!!videoToReturn}
+                onClose={() => setVideoToReturn(null)}
+                onConfirm={handleConfirmReturnForReal}
+                title="Return Task"
+                description={`Are you sure you want to return "${videoToReturn?.name}" to the previous department?`}
+                confirmText="Return Task"
+                variant="danger"
+                icon={ArrowLeft}
+            />
+
+            <ConfirmActionModal
+                isOpen={!!videoToApprove}
+                onClose={() => setVideoToApprove(null)}
+                onConfirm={handleConfirmApprove}
+                title="Approve Task"
+                description={`Mark "${videoToApprove?.name}" as done for the Main Team's review?`}
+                confirmText="Approve & Mark Done"
+                icon={CheckCircle}
             />
         </div>
     );

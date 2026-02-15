@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db, schema } from '@/db';
-import { eq } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { R2, R2_BUCKET_NAME } from '@/lib/r2';
 import { DeleteObjectsCommand } from '@aws-sdk/client-s3';
@@ -71,6 +71,12 @@ export async function PUT(request, { params }) {
             updateData.status = mapAppStatusToDb(body.status);
         }
         if (body.currentDepartment !== undefined) {
+            // Forwarding logic: track where it's coming from and when
+            if (body.currentDepartment !== currentVideo.currentDepartment) {
+                updateData.previousDepartment = currentVideo.currentDepartment;
+                updateData.forwardedAt = new Date();
+                updateData.takebackRequested = false;
+            }
             updateData.currentDepartment = body.currentDepartment;
             updateData.departmentEnteredAt = new Date();
         }
@@ -81,6 +87,37 @@ export async function PUT(request, { params }) {
             } else {
                 const parsedId = parseInt(body.assignedTo);
                 updateData.assignedTo = isNaN(parsedId) ? null : parsedId;
+            }
+        }
+
+        // Handle Takeback Actions
+        if (body.action === 'request_takeback') {
+            updateData.takebackRequested = true;
+        }
+
+        if (body.action === 'confirm_takeback') {
+            if (!currentVideo.previousDepartment) {
+                return NextResponse.json({ error: 'No previous department to return to' }, { status: 400 });
+            }
+            updateData.currentDepartment = currentVideo.previousDepartment;
+            updateData.previousDepartment = null;
+            updateData.forwardedAt = null;
+            updateData.takebackRequested = false;
+            updateData.status = 'in_progress';
+            updateData.assignedTo = null;
+            updateData.departmentEnteredAt = new Date();
+
+            // History cleanup: delete the latest 'completed' entry for this video in the PREVIOUS department
+            const historyToDelete = await db.query.videoHistory.findFirst({
+                where: and(
+                    eq(schema.videoHistory.videoId, currentVideo.id),
+                    eq(schema.videoHistory.department, currentVideo.previousDepartment),
+                    eq(schema.videoHistory.action, 'completed')
+                ),
+                orderBy: desc(schema.videoHistory.timestamp)
+            });
+            if (historyToDelete) {
+                await db.delete(schema.videoHistory).where(eq(schema.videoHistory.id, historyToDelete.id));
             }
         }
 
@@ -172,6 +209,7 @@ function mapAppStatusToDb(appStatus) {
         'pending': 'pending',
         'running': 'in_progress',
         'department_completed': 'department_completed',
+        'waiting_approval': 'waiting_approval',
         'ended': 'completed',
     };
     return statusMap[appStatus] || 'pending';
@@ -182,6 +220,7 @@ function mapDbStatusToApp(dbStatus) {
         'pending': 'pending',
         'in_progress': 'running',
         'department_completed': 'department_completed',
+        'waiting_approval': 'waiting_approval',
         'completed': 'ended',
     };
     return statusMap[dbStatus] || 'pending';

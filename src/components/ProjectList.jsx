@@ -1,4 +1,4 @@
-import { Plus, Play, ArrowRight, CheckCircle, ChevronDown, User, Clock, RotateCcw } from "lucide-react";
+import { Plus, Play, ArrowRight, CheckCircle, ChevronDown, User, Clock, RotateCcw, Undo2, ArrowLeft } from "lucide-react";
 import styles from "./ProjectList.module.css";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -174,8 +174,12 @@ const ProjectList = ({
     loading = false,
     finishButtonText = "Finish",
     currentUserId = null,
+    userRole = null, // New prop
     showRollbackButton = false,
-    onRollbackClick
+    onRollbackClick,
+    onTakebackClick,
+    onSendBackClick,
+    departmentName = ""
 }) => {
     // ... (rest of ProjectList)
 
@@ -226,6 +230,10 @@ const ProjectList = ({
                                     <span className={styles.assignedTo} style={{ color: 'var(--success-color, #10B981)' }}>
                                         Completed
                                     </span>
+                                ) : project.status === 'waiting_approval' ? (
+                                    <span className={styles.assignedTo} style={{ color: 'var(--warning-color, #F59E0B)', fontStyle: 'italic' }}>
+                                        Waiting for Approval
+                                    </span>
                                 ) : (project.assigneeName && (
                                     <span className={styles.assignedTo}>
                                         Assigned to: {project.assigneeName}
@@ -274,7 +282,7 @@ const ProjectList = ({
                                     <span>Start</span>
                                 </button>
                             )}
-                            {showForwardButton && onForwardClick && (
+                            {showForwardButton && onForwardClick && project.currentDepartment === departmentName && (
                                 <button
                                     className={styles.forwardButton}
                                     onClick={(e) => {
@@ -287,7 +295,7 @@ const ProjectList = ({
                                     <span>Forward</span>
                                 </button>
                             )}
-                            {(showFinishButton || (currentUserId && String(project.assignedTo) === String(currentUserId))) && onFinishClick && (
+                            {(showFinishButton || (currentUserId && String(project.assignedTo) === String(currentUserId))) && onFinishClick && project.currentDepartment === departmentName && project.status !== 'waiting_approval' && (
                                 <button
                                     className={styles.finishButton}
                                     onClick={(e) => {
@@ -300,7 +308,7 @@ const ProjectList = ({
                                     <span>{finishButtonText}</span>
                                 </button>
                             )}
-                            {showRollbackButton && onRollbackClick && (
+                            {showRollbackButton && onRollbackClick && project.currentDepartment === departmentName && project.status !== 'waiting_approval' && (
                                 <button
                                     className={styles.rollbackButton}
                                     onClick={(e) => {
@@ -326,6 +334,101 @@ const ProjectList = ({
                                 >
                                     <RotateCcw size={14} />
                                     <span>Rollback</span>
+                                </button>
+                            )}
+
+                            {/* Takeback (Recall) Logic - Restricted to main_team */}
+                            {onTakebackClick && userRole === 'main_team' && project.previousDepartment === departmentName && !project.takebackRequested && (
+                                (() => {
+                                    const now = new Date();
+                                    const forwardedAt = project.forwardedAt ? new Date(project.forwardedAt) : null;
+                                    const diffMs = forwardedAt ? now - forwardedAt : Infinity;
+                                    if (diffMs < 3600000) {
+                                        return (
+                                            <button
+                                                className={styles.takebackButton}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onTakebackClick(project.id);
+                                                }}
+                                                title="Request to take back this task"
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    padding: '6px 12px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 500,
+                                                    borderRadius: 'var(--border-radius-sm)',
+                                                    border: '1px solid var(--warning-color, #F59E0B)',
+                                                    background: 'rgba(245, 158, 11, 0.1)',
+                                                    color: 'var(--warning-color, #F59E0B)',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s',
+                                                    marginLeft: '8px'
+                                                }}
+                                            >
+                                                <Undo2 size={14} />
+                                                <span>Recall</span>
+                                            </button>
+                                        );
+                                    }
+                                    return null;
+                                })()
+                            )}
+
+                            {/* Recalled Status Information */}
+                            {project.previousDepartment === departmentName && project.takebackRequested && (
+                                <div
+                                    className={styles.recalledStatus}
+                                    title="Takeback request sent to next department"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '6px 12px',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        borderRadius: 'var(--border-radius-sm)',
+                                        border: '1px solid rgba(245, 158, 11, 0.2)',
+                                        background: 'rgba(245, 158, 11, 0.05)',
+                                        color: '#F59E0B',
+                                        fontStyle: 'italic',
+                                        marginLeft: '8px'
+                                    }}
+                                >
+                                    <Clock size={14} />
+                                    <span>Recalled</span>
+                                </div>
+                            )}
+
+                            {/* Send Back (Return) Logic */}
+                            {onSendBackClick && project.takebackRequested && (
+                                <button
+                                    className={styles.sendBackButton}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSendBackClick(project.id);
+                                    }}
+                                    title="Send this task back to the previous department"
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '6px 12px',
+                                        fontSize: '12px',
+                                        fontWeight: 500,
+                                        borderRadius: 'var(--border-radius-sm)',
+                                        border: '1px solid var(--error-color, #EF4444)',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        color: 'var(--error-color, #EF4444)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        marginLeft: '8px'
+                                    }}
+                                >
+                                    <ArrowLeft size={14} />
+                                    <span>Return</span>
                                 </button>
                             )}
                         </div>

@@ -51,6 +51,9 @@ export const videos = pgTable('videos', {
     assignedTo: integer('assigned_to').references(() => users.id),
     isPublished: boolean('is_published').default(false),
     departmentEnteredAt: timestamp('department_entered_at').defaultNow(),
+    forwardedAt: timestamp('forwarded_at'),
+    previousDepartment: text('previous_department'),
+    takebackRequested: boolean('takeback_requested').default(false),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -104,6 +107,19 @@ export const reminders = pgTable('reminders', {
     datetime: timestamp('datetime').notNull(),
     audienceType: text('audience_type').notNull(), // 'all', 'leads', 'members', 'specific'
     targetUsers: text('target_users'), // JSON string of user IDs for specific targeting
+    createdBy: integer('created_by').references(() => users.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Deadlines table
+export const deadlines = pgTable('deadlines', {
+    id: serial('id').primaryKey(),
+    title: text('title').notNull(),
+    datetime: timestamp('datetime').notNull(),
+    audienceType: text('audience_type').notNull(), // 'all', 'leads', 'members', 'specific'
+    targetUsers: text('target_users'), // JSON string of user IDs for specific targeting
+    description: text('description'),
+    status: text('status').default('active'), // 'active', 'completed', 'missed'
     createdBy: integer('created_by').references(() => users.id),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });

@@ -43,7 +43,7 @@ const OngoingVideoAnalytics = ({ videos = [] }) => {
 
     const chartData = runningVideos.map(v => ({
         name: v.name,
-        value: v.status === 'department_completed' ? 75 : 50,
+        value: v.status === 'waiting_approval' ? 90 : (v.status === 'department_completed' ? 75 : 50),
         id: v.id,
         currentDepartment: v.currentDepartment, // Include department info
         // Shorten name for X-axis if needed
