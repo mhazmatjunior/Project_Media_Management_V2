@@ -328,39 +328,34 @@
 @media (max-width: 768px) {
     .item {
         flex-wrap: wrap;
-        gap: 12px 8px;
-        /* Row gap 12px, Col gap 8px */
+        gap: 8px;
+        padding: 12px 8px;
     }
 
     .details {
-        min-width: calc(100% - 50px);
-        /* Fill rest of row alongside icon */
+        flex: 1;
+        min-width: 200px;
     }
 
     /* Force buttons to new line full width */
     .assignContainer,
     .startButton,
     .forwardButton,
-    .finishButton {
+    .finishButton,
+    .rollbackButton,
+    .takebackButton,
+    .sendBackButton {
         margin-left: 0;
         width: 100%;
         margin-top: 4px;
         justify-content: center;
-        /* Smaller size adjustments */
-        padding: 4px 10px;
-        font-size: 11px;
-        height: 28px;
-        /* Enforce smaller height */
     }
 
     .assignTrigger,
     .assignedButton {
         width: 100%;
         justify-content: center;
-        /* Smaller size adjustments */
-        padding: 4px 10px;
-        font-size: 11px;
-        min-height: 28px;
+        min-height: 32px;
     }
 
     .card {

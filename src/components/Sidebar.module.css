@@ -1,6 +1,8 @@
 .sidebar {
     width: var(--sidebar-width);
     height: 100vh;
+    height: 100dvh;
+    /* Dynamic viewport height for mobile browser chrome */
     background-color: var(--background-color);
     display: flex;
     flex-direction: column;
@@ -8,7 +10,8 @@
     position: fixed;
     left: 0;
     top: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     z-index: 100;
 }
@@ -56,7 +59,8 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
+    /* Reduced for mobile space */
     padding-left: 10px;
     flex-shrink: 0;
     height: 50px;
@@ -107,8 +111,9 @@
 }
 
 .generalSection {
-    margin-top: auto;
-    margin-bottom: 20px;
+    margin-top: 20px;
+    /* Changed from auto to fixed for better scrolling behavior */
+    margin-bottom: 30px;
 }
 
 .menuTitle {

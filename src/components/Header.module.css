@@ -1,8 +1,7 @@
 .header {
-    height: 100px;
+    height: 80px;
     display: flex;
-    align-items: flex-start;
-    padding-top: 35px;
+    align-items: center;
     justify-content: space-between;
     margin-bottom: 10px;
     background-color: transparent;
@@ -295,37 +294,41 @@
 @media (max-width: 768px) {
     .header {
         height: auto;
-        padding-top: 20px;
+        padding: 10px 0;
         flex-direction: column;
-        gap: 20px;
+        gap: 12px;
     }
 
     .headerTitle {
         width: 100%;
         justify-content: center;
-        /* Center content */
         position: relative;
     }
 
     .menuButton {
         position: absolute;
         left: 0;
-        /* Keep hamburger on left */
     }
 
     .headerTitle h1 {
-        font-size: 24px;
+        font-size: 20px;
         text-align: center;
     }
 
     .actions {
         width: 100%;
-        justify-content: flex-end;
+        justify-content: center;
+        gap: 12px;
     }
 
     .profile {
-        margin-left: 10px;
-        padding-left: 10px;
+        margin-left: 0;
+        padding-left: 12px;
+        border-left: 1px solid #222;
+    }
+
+    .userInfo {
+        display: none; /* Hide email/name on very small screens if needed, or keep compact */
     }
 
     .modalContent {
